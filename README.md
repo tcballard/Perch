@@ -7,6 +7,12 @@ Perch observes existing sessions and can focus a validated native surface. It
 does not create tasks, answer prompts, grant approvals, control agents, or send
 provider data over the network.
 
+PR #1 delivered the internal `v0.0.1` observation-engine foundation. The current
+panel is a diagnostic vertical slice; the product path toward the first signed
+`v0.1.0` release is documented in [ROADMAP.md](ROADMAP.md). The waiting-first
+v0.0.2 design recommendation is in
+[docs/design/v0.0.2-attention-layer.md](docs/design/v0.0.2-attention-layer.md).
+
 ## Current support
 
 | Provider | Validated version | Observation | Focus | Known limit |
