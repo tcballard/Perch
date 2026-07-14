@@ -17,7 +17,7 @@ final class RosterCoordinator {
     private var lastSuccess: [ProviderID: ContinuousClock.Instant] = [:]
     private let logger = Logger(subsystem: "com.tcballard.perch", category: "Polling")
 
-    init(adapters: [any AgentProviderAdapter], pollingInterval: Duration, staleRetention: Duration = .seconds(10)) {
+    init(adapters: [any AgentProviderAdapter], pollingInterval: Duration, staleRetention: Duration = .seconds(15)) {
         self.adapters = adapters
         self.pollingInterval = pollingInterval
         self.staleRetention = staleRetention
