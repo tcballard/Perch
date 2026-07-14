@@ -1,0 +1,49 @@
+name: Perch
+options:
+  bundleIdPrefix: com.tcballard
+  deploymentTarget:
+    macOS: "14.0"
+settings:
+  base:
+    ARCHS: arm64
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: R8HXTBY3NM
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    SWIFT_VERSION: "5.0"
+targets:
+  Perch:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/Perch
+    info:
+      path: Sources/Perch/Info.plist
+      properties:
+        CFBundleDisplayName: Perch
+        LSApplicationCategoryType: public.app-category.developer-tools
+        LSMinimumSystemVersion: "14.0"
+        LSUIElement: true
+        NSHumanReadableCopyright: Copyright © 2026 Tom Ballard. All rights reserved.
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tcballard.perch
+        PRODUCT_NAME: Perch
+  PerchTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests/PerchTests
+    dependencies:
+      - target: Perch
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tcballard.perch.tests
+schemes:
+  Perch:
+    build:
+      targets:
+        Perch: all
+        PerchTests: [test]
+    test:
+      targets:
+        - PerchTests
