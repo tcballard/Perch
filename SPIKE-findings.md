@@ -1,5 +1,10 @@
 # Perch provider-state spike findings
 
+> Historical record: this document captures the mandatory provider-state spike
+> before production work began. Statements such as “Production implementation:
+> None” describe that point in time. The subsequently completed v0.0.1 vertical
+> slice is documented in `README.md`, `ACCEPTANCE.md`, and `ROADMAP.md`.
+
 Date: 2026-07-14
 Decision: **GO**
 
@@ -199,8 +204,11 @@ for the gate.
 
 ## Production implementation
 
-None. In particular, no menu-bar app, domain model, adapter API, shared
-framework, persistence, or visual system was scaffolded.
+None at the time of this spike. In particular, no menu-bar app, domain model,
+adapter API, shared framework, persistence, or visual system had yet been
+scaffolded. The v0.1 production vertical slice was implemented after the GO
+decision and later merged in PR #1 as v0.0.1; this paragraph remains point-in-time
+evidence rather than a description of the current repository.
 
 ## Sanitized regression fixtures
 
