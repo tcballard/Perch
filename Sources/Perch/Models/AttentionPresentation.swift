@@ -67,4 +67,11 @@ struct AttentionPresentation: Sendable {
     var restingCount: Int { allSessions.filter { $0.session.state == .idle || $0.session.state == .done }.count }
     var uncertainCount: Int { allSessions.filter(\.isUncertain).count }
     var usesAggregatedOverview: Bool { observedCount >= 8 }
+
+    var dominantState: AgentState {
+        if waitingCount > 0 { return .waiting }
+        if workingCount > 0 { return .working }
+        if restingCount > 0 { return .idle }
+        return .unknown
+    }
 }

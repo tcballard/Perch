@@ -50,9 +50,9 @@ struct PerchPanelView: View {
 
     private var header: some View {
         HStack(spacing: PerchDesign.Space.row) {
-            Image(systemName: "bird.fill")
+            Image(systemName: presentation.dominantState == .unknown ? "bird" : "bird.fill")
                 .font(PerchDesign.Symbol.headerBird)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(headerBirdColor)
                 .accessibilityHidden(true)
             Text("Perch")
                 .font(.title3.weight(.semibold))
@@ -76,6 +76,15 @@ struct PerchPanelView: View {
             .accessibilityLabel("Refresh sessions")
         }
         .padding(PerchDesign.Space.panel)
+    }
+
+    private var headerBirdColor: Color {
+        switch presentation.dominantState {
+        case .waiting: PerchDesign.ColorRole.attention
+        case .working: PerchDesign.ColorRole.working
+        case .idle, .done: PerchDesign.ColorRole.resting
+        case .unknown: PerchDesign.ColorRole.uncertain
+        }
     }
 
     private var panelHeight: CGFloat {

@@ -80,6 +80,20 @@ final class AttentionPresentationTests: XCTestCase {
         XCTAssertEqual(twenty.restingCount, 20)
     }
 
+    func testDominantStateUsesConservativeAttentionPriority() {
+        XCTAssertEqual(AttentionPresentation(sessions: []).dominantState, .unknown)
+        XCTAssertEqual(AttentionPresentation(sessions: [session(id: "unknown", state: .unknown)]).dominantState, .unknown)
+        XCTAssertEqual(AttentionPresentation(sessions: [session(id: "idle", state: .idle)]).dominantState, .idle)
+        XCTAssertEqual(AttentionPresentation(sessions: [
+            session(id: "idle", state: .idle),
+            session(id: "working", state: .working),
+        ]).dominantState, .working)
+        XCTAssertEqual(AttentionPresentation(sessions: [
+            session(id: "working", state: .working),
+            session(id: "waiting", state: .waiting),
+        ]).dominantState, .waiting)
+    }
+
     private func session(
         id: String,
         state: AgentState,
