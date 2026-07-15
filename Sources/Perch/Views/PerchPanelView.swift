@@ -12,12 +12,13 @@ struct PerchPanelView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
-            Divider()
 
             AttentionOverviewView(presentation: presentation)
+                .padding(.horizontal, PerchDesign.Space.panel)
+                .padding(.bottom, PerchDesign.Space.section)
             modePicker
-                .padding(.horizontal, 12)
-                .padding(.bottom, 8)
+                .padding(.horizontal, PerchDesign.Space.panel)
+                .padding(.bottom, PerchDesign.Space.compact)
 
             Group {
                 switch mode {
@@ -30,19 +31,26 @@ struct PerchPanelView: View {
             Divider()
             footer
         }
-        .frame(width: 360, height: 480)
+        .frame(width: 360, height: panelHeight)
     }
 
     private var header: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Perch")
-                    .font(.headline)
-                Text("\(roster.waitingCount) waiting")
-                    .font(.caption)
-                    .foregroundStyle(roster.waitingCount > 0 ? .orange : .secondary)
-            }
+        HStack(spacing: PerchDesign.Space.row) {
+            Image(systemName: "bird.fill")
+                .font(PerchDesign.Symbol.headerBird)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            Text("Perch")
+                .font(.title3.weight(.semibold))
+
             Spacer()
+
+            Text(roster.waitingCount == 0 ? "All clear" : "\(roster.waitingCount) waiting")
+                .font(.headline)
+                .foregroundStyle(roster.waitingCount > 0 ? PerchDesign.ColorRole.attention : .secondary)
+                .monospacedDigit()
+                .accessibilityLabel(roster.waitingCount == 0 ? "Nothing waiting" : "\(roster.waitingCount) agents waiting")
+
             Button {
                 Task { await roster.refresh() }
             } label: {
@@ -53,40 +61,66 @@ struct PerchPanelView: View {
             .help("Refresh now")
             .accessibilityLabel("Refresh sessions")
         }
-        .padding(12)
+        .padding(PerchDesign.Space.panel)
     }
 
     private var modePicker: some View {
         Picker("View", selection: $mode) {
             ForEach(PanelMode.allCases) { mode in
-                Text(mode.rawValue).tag(mode)
+                Text(mode == .attention && roster.waitingCount > 0 ? "Attention  \(roster.waitingCount)" : mode.rawValue)
+                    .tag(mode)
             }
         }
         .pickerStyle(.segmented)
+        .labelsHidden()
         .accessibilityLabel("Perch view")
+    }
+
+    private var panelHeight: CGFloat {
+        mode == .attention && presentation.waitingCount == 0 ? 330 : 480
     }
 
     @ViewBuilder
     private var attentionContent: some View {
         if presentation.waitingSessions.isEmpty {
-            ContentUnavailableView(
-                "Nothing needs you",
-                systemImage: "checkmark.circle",
-                description: Text(presentation.observedCount == 0 ? "Perch is watching enabled providers." : "Working agents can stay in the background.")
-            )
+            calmZeroState
         } else {
             ScrollView {
-                LazyVStack(spacing: 8) {
+                LazyVStack(spacing: 0) {
                     ForEach(presentation.waitingSessions) { item in
                         WaitingHandoffRowView(item: item) {
                             Task { try? await roster.focus(item.session) }
                         }
+                        if item.id != presentation.waitingSessions.last?.id {
+                            Divider().padding(.leading, 30)
+                        }
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.bottom, 12)
+                .padding(.horizontal, PerchDesign.Space.panel)
+                .padding(.bottom, PerchDesign.Space.section)
             }
         }
+    }
+
+    private var calmZeroState: some View {
+        HStack(spacing: PerchDesign.Space.section) {
+            Image(systemName: "bird")
+                .font(.title2)
+                .foregroundStyle(.tertiary)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Nothing needs you")
+                    .font(.body.weight(.medium))
+                Text(presentation.observedCount == 0 ? "Perch is watching enabled providers." : "Working agents can stay in the background.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+        }
+        .padding(.horizontal, PerchDesign.Space.panel)
+        .padding(.vertical, PerchDesign.Space.section)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .accessibilityElement(children: .combine)
     }
 
     @ViewBuilder
@@ -95,15 +129,18 @@ struct PerchPanelView: View {
             ContentUnavailableView("No agent sessions", systemImage: "bird")
         } else {
             ScrollView {
-                LazyVStack(spacing: 8) {
+                LazyVStack(spacing: 0) {
                     ForEach(presentation.allSessions) { item in
                         SessionRowView(item: item) {
                             Task { try? await roster.focus(item.session) }
                         }
+                        if item.id != presentation.allSessions.last?.id {
+                            Divider().padding(.leading, 30)
+                        }
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.bottom, 12)
+                .padding(.horizontal, PerchDesign.Space.panel)
+                .padding(.bottom, PerchDesign.Space.section)
             }
         }
     }
@@ -120,6 +157,7 @@ struct PerchPanelView: View {
             .buttonStyle(.plain)
             .keyboardShortcut("q")
         }
-        .padding(12)
+        .padding(.horizontal, PerchDesign.Space.panel)
+        .padding(.vertical, PerchDesign.Space.row)
     }
 }

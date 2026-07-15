@@ -14,6 +14,7 @@
 		4EC725BDF33DD18AD91D4B54 /* AttentionPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FCDD698C0935192A342B7AD /* AttentionPresentationTests.swift */; };
 		64AFF88F81DE68864463B41F /* ClaudeDesktopAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F1612C6039F49C790F19BD0 /* ClaudeDesktopAdapter.swift */; };
 		68E17614026C89626D6538C5 /* BoundedProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10BB1FC94FE53B78DA9B0CB /* BoundedProcess.swift */; };
+		77F046757011ADB510A61D8A /* PerchDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA672EFF9361DF61741C313F /* PerchDesign.swift */; };
 		7BE4033407669B521F0001CE /* CodexAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9127A6A62C9DCF5147F97155 /* CodexAdapterTests.swift */; };
 		9AB197F9AB16150FEF14B74B /* AgentProviderAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A2B159B6E1708271A0BF88 /* AgentProviderAdapter.swift */; };
 		A762C0742CEA185E82762658 /* PerchPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E93A429FB7198349BE6386 /* PerchPanelView.swift */; };
@@ -54,6 +55,7 @@
 		B9C11CB6F201B9372EA0827B /* PerchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PerchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD4FCA977EBEC9EB018088A2 /* RosterCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosterCoordinatorTests.swift; sourceTree = "<group>"; };
 		C10BB1FC94FE53B78DA9B0CB /* BoundedProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoundedProcess.swift; sourceTree = "<group>"; };
+		CA672EFF9361DF61741C313F /* PerchDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerchDesign.swift; sourceTree = "<group>"; };
 		CCE7F4A19505D3B665B3A097 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D41D4D3B908363F711572982 /* Perch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Perch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4646DF01B4BCB80CF3377F0 /* CodexAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexAdapter.swift; sourceTree = "<group>"; };
@@ -98,6 +100,14 @@
 				55034E591AAB132D3A33C1CD /* RosterCoordinator.swift */,
 			);
 			path = Stores;
+			sourceTree = "<group>";
+		};
+		CC105910E2CDEC72AD4785E9 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				CA672EFF9361DF61741C313F /* PerchDesign.swift */,
+			);
+			path = Design;
 			sourceTree = "<group>";
 		};
 		D85CA7F938722E5036F36D7D /* Services */ = {
@@ -146,6 +156,7 @@
 				CCE7F4A19505D3B665B3A097 /* Info.plist */,
 				E0ABF2C6A7F7ACD7B9B3B7EB /* Adapters */,
 				EEC16C9E619B957A56177B83 /* App */,
+				CC105910E2CDEC72AD4785E9 /* Design */,
 				1D31CC55A36EE36E48786280 /* Models */,
 				D85CA7F938722E5036F36D7D /* Services */,
 				94C026A23A9E4C197A1AF5E3 /* Stores */,
@@ -264,6 +275,7 @@
 				64AFF88F81DE68864463B41F /* ClaudeDesktopAdapter.swift in Sources */,
 				1C1AC0A07F7CE0458A1930A1 /* CodexAdapter.swift in Sources */,
 				19011216E650F7E6E16BFC6B /* PerchApp.swift in Sources */,
+				77F046757011ADB510A61D8A /* PerchDesign.swift in Sources */,
 				A762C0742CEA185E82762658 /* PerchPanelView.swift in Sources */,
 				427403EBF94C639595BA755E /* PerchStatusLabel.swift in Sources */,
 				C21B5949B5ADCB67420FAF48 /* RosterCoordinator.swift in Sources */,

@@ -20,6 +20,8 @@ targets:
       path: Sources/Perch/Info.plist
       properties:
         CFBundleDisplayName: Perch
+        CFBundleShortVersionString: "0.0.2"
+        CFBundleVersion: "2"
         LSApplicationCategoryType: public.app-category.developer-tools
         LSMinimumSystemVersion: "14.0"
         LSUIElement: true

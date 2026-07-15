@@ -7,11 +7,12 @@ struct SessionRowView: View {
     private var session: AgentSession { item.session }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Circle()
-                .fill(stateColor)
-                .frame(width: 8, height: 8)
-                .padding(.top, 5)
+        HStack(alignment: .center, spacing: PerchDesign.Space.row) {
+            Image(systemName: stateSymbol)
+                .font(.caption)
+                .foregroundStyle(stateColor)
+                .frame(width: 14)
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack {
@@ -29,25 +30,22 @@ struct SessionRowView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
 
-                if session.state == .waiting, let waitingSince = session.waitingSince {
-                    Text(waitingSince, style: .relative)
-                        .font(.caption2)
-                        .foregroundStyle(.orange)
-                }
             }
 
-            Button(action: focus) {
-                Image(systemName: "arrow.up.forward.app")
+            if item.canFocus {
+                Button("Focus", action: focus)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .help("Focus \(item.projectName)")
+            } else {
+                Text("Focus unavailable")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
             }
-            .buttonStyle(.borderless)
-            .disabled(session.nativeSurface == nil)
-            .help(session.nativeSurface == nil ? "Focus unavailable" : "Focus session")
-            .accessibilityLabel(session.nativeSurface == nil ? "Focus unavailable" : "Focus session")
         }
-        .padding(10)
-        .background(session.state == .waiting ? Color.orange.opacity(0.10) : Color.secondary.opacity(0.06))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .accessibilityElement(children: .combine)
+        .padding(.horizontal, PerchDesign.Space.compact)
+        .padding(.vertical, PerchDesign.Space.row)
+        .accessibilityElement(children: .contain)
     }
 
     private var detailText: String {
@@ -63,6 +61,15 @@ struct SessionRowView: View {
         case .working: .blue
         case .idle, .done: .secondary
         case .unknown: .gray
+        }
+    }
+
+    private var stateSymbol: String {
+        switch session.state {
+        case .waiting: "exclamationmark.circle.fill"
+        case .working: "bolt.fill"
+        case .idle, .done: "pause.fill"
+        case .unknown: "questionmark.circle"
         }
     }
 }
