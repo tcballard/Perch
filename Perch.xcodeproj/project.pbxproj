@@ -11,6 +11,7 @@
 		19011216E650F7E6E16BFC6B /* PerchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A273FDF288DDD755E9D97E33 /* PerchApp.swift */; };
 		1C1AC0A07F7CE0458A1930A1 /* CodexAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4646DF01B4BCB80CF3377F0 /* CodexAdapter.swift */; };
 		427403EBF94C639595BA755E /* PerchStatusLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF8D65C1AC704CA6BA1CAB4 /* PerchStatusLabel.swift */; };
+		4EC725BDF33DD18AD91D4B54 /* AttentionPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FCDD698C0935192A342B7AD /* AttentionPresentationTests.swift */; };
 		64AFF88F81DE68864463B41F /* ClaudeDesktopAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F1612C6039F49C790F19BD0 /* ClaudeDesktopAdapter.swift */; };
 		68E17614026C89626D6538C5 /* BoundedProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10BB1FC94FE53B78DA9B0CB /* BoundedProcess.swift */; };
 		7BE4033407669B521F0001CE /* CodexAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9127A6A62C9DCF5147F97155 /* CodexAdapterTests.swift */; };
@@ -21,6 +22,9 @@
 		C0DA1226920E2CBFEFEC0D23 /* AgentSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5931626E26B779B984EA15AE /* AgentSession.swift */; };
 		C21B5949B5ADCB67420FAF48 /* RosterCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55034E591AAB132D3A33C1CD /* RosterCoordinator.swift */; };
 		E0ED4F8D81196A1375453D04 /* ClaudeDesktopAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FC75E8850B9B07D5B7F92FD /* ClaudeDesktopAdapterTests.swift */; };
+		ED635508A57B3A9BCF2C596A /* WaitingHandoffRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D6ADECB4AFCE77EC7F42048 /* WaitingHandoffRowView.swift */; };
+		EFFF14F69D3714066D6F9050 /* AttentionOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06EE09AC88D3C02AA9317DDC /* AttentionOverviewView.swift */; };
+		FBCF8ED92DF21CAD67ED0432 /* AttentionPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9150D0CFFDF34175E4C0B117 /* AttentionPresentation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,12 +38,16 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		06EE09AC88D3C02AA9317DDC /* AttentionOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionOverviewView.swift; sourceTree = "<group>"; };
 		10713F66FF5BF6ABA059AD52 /* SessionRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRowView.swift; sourceTree = "<group>"; };
+		2D6ADECB4AFCE77EC7F42048 /* WaitingHandoffRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitingHandoffRowView.swift; sourceTree = "<group>"; };
 		35E93A429FB7198349BE6386 /* PerchPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerchPanelView.swift; sourceTree = "<group>"; };
 		55034E591AAB132D3A33C1CD /* RosterCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosterCoordinator.swift; sourceTree = "<group>"; };
 		5931626E26B779B984EA15AE /* AgentSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentSession.swift; sourceTree = "<group>"; };
 		5FC75E8850B9B07D5B7F92FD /* ClaudeDesktopAdapterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeDesktopAdapterTests.swift; sourceTree = "<group>"; };
+		7FCDD698C0935192A342B7AD /* AttentionPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionPresentationTests.swift; sourceTree = "<group>"; };
 		9127A6A62C9DCF5147F97155 /* CodexAdapterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexAdapterTests.swift; sourceTree = "<group>"; };
+		9150D0CFFDF34175E4C0B117 /* AttentionPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionPresentation.swift; sourceTree = "<group>"; };
 		97A3C62DFCA00CAEE21FC9ED /* ScriptedMockAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptedMockAdapter.swift; sourceTree = "<group>"; };
 		9F1612C6039F49C790F19BD0 /* ClaudeDesktopAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeDesktopAdapter.swift; sourceTree = "<group>"; };
 		A273FDF288DDD755E9D97E33 /* PerchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerchApp.swift; sourceTree = "<group>"; };
@@ -58,6 +66,7 @@
 			isa = PBXGroup;
 			children = (
 				5931626E26B779B984EA15AE /* AgentSession.swift */,
+				9150D0CFFDF34175E4C0B117 /* AttentionPresentation.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -74,9 +83,11 @@
 		781A9BD3DFD468DC020677DE /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				06EE09AC88D3C02AA9317DDC /* AttentionOverviewView.swift */,
 				35E93A429FB7198349BE6386 /* PerchPanelView.swift */,
 				ECF8D65C1AC704CA6BA1CAB4 /* PerchStatusLabel.swift */,
 				10713F66FF5BF6ABA059AD52 /* SessionRowView.swift */,
+				2D6ADECB4AFCE77EC7F42048 /* WaitingHandoffRowView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -101,6 +112,7 @@
 		DEEF9E100A7290E48476D7A0 /* PerchTests */ = {
 			isa = PBXGroup;
 			children = (
+				7FCDD698C0935192A342B7AD /* AttentionPresentationTests.swift */,
 				5FC75E8850B9B07D5B7F92FD /* ClaudeDesktopAdapterTests.swift */,
 				9127A6A62C9DCF5147F97155 /* CodexAdapterTests.swift */,
 				BD4FCA977EBEC9EB018088A2 /* RosterCoordinatorTests.swift */,
@@ -233,6 +245,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4EC725BDF33DD18AD91D4B54 /* AttentionPresentationTests.swift in Sources */,
 				E0ED4F8D81196A1375453D04 /* ClaudeDesktopAdapterTests.swift in Sources */,
 				7BE4033407669B521F0001CE /* CodexAdapterTests.swift in Sources */,
 				C0CDC3279BA818FEDA8948F7 /* RosterCoordinatorTests.swift in Sources */,
@@ -245,6 +258,8 @@
 			files = (
 				9AB197F9AB16150FEF14B74B /* AgentProviderAdapter.swift in Sources */,
 				C0DA1226920E2CBFEFEC0D23 /* AgentSession.swift in Sources */,
+				EFFF14F69D3714066D6F9050 /* AttentionOverviewView.swift in Sources */,
+				FBCF8ED92DF21CAD67ED0432 /* AttentionPresentation.swift in Sources */,
 				68E17614026C89626D6538C5 /* BoundedProcess.swift in Sources */,
 				64AFF88F81DE68864463B41F /* ClaudeDesktopAdapter.swift in Sources */,
 				1C1AC0A07F7CE0458A1930A1 /* CodexAdapter.swift in Sources */,
@@ -254,6 +269,7 @@
 				C21B5949B5ADCB67420FAF48 /* RosterCoordinator.swift in Sources */,
 				B5659C912B6F18BA200F4457 /* ScriptedMockAdapter.swift in Sources */,
 				0E19D9838A7E37E51DA441A5 /* SessionRowView.swift in Sources */,
+				ED635508A57B3A9BCF2C596A /* WaitingHandoffRowView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,8 +1,10 @@
 import SwiftUI
 
 struct SessionRowView: View {
-    let session: AgentSession
+    let item: SessionPresentation
     let focus: () -> Void
+
+    private var session: AgentSession { item.session }
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -13,11 +15,11 @@ struct SessionRowView: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack {
-                    Text(session.label ?? "Untitled session")
+                    Text(item.projectName)
                         .fontWeight(session.state == .waiting ? .semibold : .regular)
                         .lineLimit(1)
                     Spacer()
-                    Text(session.provider.rawValue.capitalized)
+                    Text(item.providerName)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
@@ -49,7 +51,9 @@ struct SessionRowView: View {
     }
 
     private var detailText: String {
-        if let waitingOn = session.waitingOn { return waitingOn }
+        if session.state == .waiting {
+            return item.waitingAction?.rawValue ?? WaitingAction.input.rawValue
+        }
         return "\(session.state.rawValue.capitalized) · \(session.confidence.rawValue)"
     }
 
