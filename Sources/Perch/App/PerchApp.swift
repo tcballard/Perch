@@ -21,7 +21,10 @@ struct PerchApp: App {
         MenuBarExtra {
             PerchPanelView(roster: roster)
         } label: {
-            PerchStatusLabel(waitingCount: roster.waitingCount)
+            PerchStatusLabel(
+                waitingCount: roster.waitingCount,
+                dominantState: AttentionPresentation(sessions: roster.sessions).dominantState
+            )
                 .task { roster.start() }
         }
         .menuBarExtraStyle(.window)
