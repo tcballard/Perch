@@ -27,3 +27,10 @@ enum PerchDesign {
         static let headerBird = Font.system(size: 22, weight: .semibold)
     }
 }
+
+struct PerchOverviewButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .opacity(configuration.isPressed ? 0.78 : 1)
+    }
+}

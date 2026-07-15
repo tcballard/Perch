@@ -4,6 +4,8 @@ import SwiftUI
 struct PerchPanelView: View {
     let roster: RosterCoordinator
     @State private var mode: PanelMode = .attention
+    @State private var isPerchHovered = false
+    @FocusState private var isPerchFocused: Bool
 
     private var presentation: AttentionPresentation {
         AttentionPresentation(sessions: roster.sessions)
@@ -13,12 +15,24 @@ struct PerchPanelView: View {
         VStack(alignment: .leading, spacing: 0) {
             header
 
-            AttentionOverviewView(presentation: presentation)
+            Button {
+                mode = mode == .attention ? .allActivity : .attention
+            } label: {
+                AttentionOverviewView(
+                    presentation: presentation,
+                    mode: mode,
+                    isHovered: isPerchHovered,
+                    isKeyboardFocused: isPerchFocused
+                )
+            }
+                .buttonStyle(PerchOverviewButtonStyle())
+                .focused($isPerchFocused)
+                .onHover { isPerchHovered = $0 }
+                .help(mode == .attention ? "Show all activity" : "Show attention")
+                .accessibilityLabel(mode == .attention ? "Show all activity" : "Show attention")
+                .accessibilityHint("Switches the session list below")
                 .padding(.horizontal, PerchDesign.Space.panel)
                 .padding(.bottom, PerchDesign.Space.section)
-            modePicker
-                .padding(.horizontal, PerchDesign.Space.panel)
-                .padding(.bottom, PerchDesign.Space.compact)
 
             Group {
                 switch mode {
@@ -62,18 +76,6 @@ struct PerchPanelView: View {
             .accessibilityLabel("Refresh sessions")
         }
         .padding(PerchDesign.Space.panel)
-    }
-
-    private var modePicker: some View {
-        Picker("View", selection: $mode) {
-            ForEach(PanelMode.allCases) { mode in
-                Text(mode == .attention && roster.waitingCount > 0 ? "Attention  \(roster.waitingCount)" : mode.rawValue)
-                    .tag(mode)
-            }
-        }
-        .pickerStyle(.segmented)
-        .labelsHidden()
-        .accessibilityLabel("Perch view")
     }
 
     private var panelHeight: CGFloat {

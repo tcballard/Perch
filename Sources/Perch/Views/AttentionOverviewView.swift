@@ -2,6 +2,9 @@ import SwiftUI
 
 struct AttentionOverviewView: View {
     let presentation: AttentionPresentation
+    let mode: PanelMode
+    let isHovered: Bool
+    let isKeyboardFocused: Bool
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
     @Environment(\.colorSchemeContrast) private var contrast
 
@@ -23,17 +26,24 @@ struct AttentionOverviewView: View {
             }
             .frame(maxWidth: .infinity, alignment: .center)
 
-            Text(footerSummary)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
+            HStack {
+                Text(footerSummary)
+                    .monospacedDigit()
+                Spacer()
+                Label(mode.rawValue, systemImage: "arrow.left.arrow.right")
+            }
+            .font(.caption2)
+            .foregroundStyle(.secondary)
         }
         .padding(PerchDesign.Space.section)
-        .background(PerchDesign.ColorRole.subtleSurface)
+        .background(isHovered ? Color.primary.opacity(0.055) : PerchDesign.ColorRole.subtleSurface)
         .clipShape(RoundedRectangle(cornerRadius: PerchDesign.Shape.groupRadius, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: PerchDesign.Shape.groupRadius, style: .continuous)
-                .stroke(PerchDesign.ColorRole.separator, lineWidth: contrast == .increased ? 1.5 : 1)
+                .stroke(
+                    isKeyboardFocused ? Color.accentColor : PerchDesign.ColorRole.separator,
+                    lineWidth: isKeyboardFocused || contrast == .increased ? 1.5 : 1
+                )
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(summary)
