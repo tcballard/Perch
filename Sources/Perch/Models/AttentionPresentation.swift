@@ -36,12 +36,14 @@ struct SessionPresentation: Identifiable, Sendable {
     var id: AgentSession.ID { session.id }
     var canFocus: Bool { session.nativeSurface != nil }
     var isUncertain: Bool { session.state == .unknown || session.confidence == .stale || session.confidence == .unknown }
+    var presentedState: AgentState { isUncertain ? .unknown : session.state }
 
     init(session: AgentSession) {
         self.session = session
         projectName = Self.projectName(for: session)
         providerName = session.provider.rawValue.capitalized
-        waitingAction = session.state == .waiting ? WaitingAction(waitingOn: session.waitingOn) : nil
+        let isUncertain = session.state == .unknown || session.confidence == .stale || session.confidence == .unknown
+        waitingAction = !isUncertain && session.state == .waiting ? WaitingAction(waitingOn: session.waitingOn) : nil
     }
 
     private static func projectName(for session: AgentSession) -> String {
@@ -58,14 +60,14 @@ struct AttentionPresentation: Sendable {
 
     init(sessions: [AgentSession]) {
         allSessions = sessions.map(SessionPresentation.init)
-        waitingSessions = allSessions.filter { $0.session.state == .waiting }
+        waitingSessions = allSessions.filter { $0.presentedState == .waiting }
     }
 
     var observedCount: Int { allSessions.count }
     var waitingCount: Int { waitingSessions.count }
-    var workingCount: Int { allSessions.filter { $0.session.state == .working }.count }
-    var restingCount: Int { allSessions.filter { $0.session.state == .idle || $0.session.state == .done }.count }
-    var uncertainCount: Int { allSessions.filter(\.isUncertain).count }
+    var workingCount: Int { allSessions.filter { $0.presentedState == .working }.count }
+    var restingCount: Int { allSessions.filter { $0.presentedState == .idle || $0.presentedState == .done }.count }
+    var uncertainCount: Int { allSessions.filter { $0.presentedState == .unknown }.count }
     var usesAggregatedOverview: Bool { observedCount >= 8 }
 
     var dominantState: AgentState {

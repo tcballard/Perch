@@ -17,7 +17,7 @@ struct SessionRowView: View {
             VStack(alignment: .leading, spacing: 3) {
                 HStack {
                     Text(item.projectName)
-                        .fontWeight(session.state == .waiting ? .semibold : .regular)
+                    .fontWeight(item.presentedState == .waiting ? .semibold : .regular)
                         .lineLimit(1)
                     Spacer()
                     Text(item.providerName)
@@ -49,23 +49,18 @@ struct SessionRowView: View {
     }
 
     private var detailText: String {
-        if session.state == .waiting {
+        if item.presentedState == .waiting {
             return item.waitingAction?.rawValue ?? WaitingAction.input.rawValue
         }
-        return "\(session.state.rawValue.capitalized) · \(session.confidence.rawValue)"
+        return "\(item.presentedState.rawValue.capitalized) · \(session.confidence.rawValue)"
     }
 
     private var stateColor: Color {
-        switch session.state {
-        case .waiting: .orange
-        case .working: .blue
-        case .idle, .done: .secondary
-        case .unknown: .gray
-        }
+        PerchDesign.ColorRole.state(item.presentedState)
     }
 
     private var stateSymbol: String {
-        switch session.state {
+        switch item.presentedState {
         case .waiting: "exclamationmark.circle.fill"
         case .working: "bolt.fill"
         case .idle, .done: "pause.fill"

@@ -3,6 +3,8 @@ import SwiftUI
 
 struct PerchPanelView: View {
     let roster: RosterCoordinator
+    @Binding var desktopCompanionEnabled: Bool
+    let setDesktopCompanionVisible: (Bool) -> Void
     @State private var mode: PanelMode = .attention
     @State private var isPerchHovered = false
     @FocusState private var isPerchFocused: Bool
@@ -46,25 +48,14 @@ struct PerchPanelView: View {
             footer
         }
         .frame(width: 360, height: panelHeight)
+        .background(MenuBarPanelPlacementGuard())
+        .onChange(of: desktopCompanionEnabled) { _, isEnabled in
+            setDesktopCompanionVisible(isEnabled)
+        }
     }
 
     private var header: some View {
-        HStack(spacing: PerchDesign.Space.row) {
-            Image(systemName: presentation.dominantState == .unknown ? "bird" : "bird.fill")
-                .font(PerchDesign.Symbol.headerBird)
-                .foregroundStyle(headerBirdColor)
-                .accessibilityHidden(true)
-            Text("Perch")
-                .font(.title3.weight(.semibold))
-
-            Spacer()
-
-            Text(roster.waitingCount == 0 ? "All clear" : "\(roster.waitingCount) waiting")
-                .font(.headline)
-                .foregroundStyle(roster.waitingCount > 0 ? PerchDesign.ColorRole.attention : .secondary)
-                .monospacedDigit()
-                .accessibilityLabel(roster.waitingCount == 0 ? "Nothing waiting" : "\(roster.waitingCount) agents waiting")
-
+        PerchSurfaceHeader(presentation: presentation) {
             Button {
                 Task { await roster.refresh() }
             } label: {
@@ -78,17 +69,8 @@ struct PerchPanelView: View {
         .padding(PerchDesign.Space.panel)
     }
 
-    private var headerBirdColor: Color {
-        switch presentation.dominantState {
-        case .waiting: PerchDesign.ColorRole.attention
-        case .working: PerchDesign.ColorRole.working
-        case .idle, .done: PerchDesign.ColorRole.resting
-        case .unknown: PerchDesign.ColorRole.uncertain
-        }
-    }
-
     private var panelHeight: CGFloat {
-        mode == .attention && presentation.waitingCount == 0 ? 330 : 480
+        mode == .attention && presentation.waitingCount == 0 ? 280 : 480
     }
 
     @ViewBuilder
@@ -158,10 +140,14 @@ struct PerchPanelView: View {
 
     private var footer: some View {
         HStack {
-            Text("Local observation only")
+            Label("Local observation only", systemImage: "lock")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             Spacer()
+            Toggle("Desktop", isOn: $desktopCompanionEnabled)
+                .toggleStyle(.checkbox)
+                .controlSize(.small)
+                .help("Show Perch on the desktop")
             Button("Quit") {
                 NSApplication.shared.terminate(nil)
             }
@@ -170,5 +156,25 @@ struct PerchPanelView: View {
         }
         .padding(.horizontal, PerchDesign.Space.panel)
         .padding(.vertical, PerchDesign.Space.row)
+    }
+}
+
+/// `MenuBarExtra(.window)` can retain its old top edge when the SwiftUI content
+/// changes height, placing the panel under the menu bar. Keep the native host
+/// window, but clamp it to the screen's visible frame after every layout pass.
+private struct MenuBarPanelPlacementGuard: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView { NSView(frame: .zero) }
+
+    func updateNSView(_ view: NSView, context: Context) {
+        DispatchQueue.main.async {
+            guard let window = view.window, let screen = window.screen else { return }
+            let visibleFrame = screen.visibleFrame
+            var frame = window.frame
+            let maximumY = visibleFrame.maxY - frame.height
+            if frame.origin.y > maximumY {
+                frame.origin.y = maximumY
+                window.setFrameOrigin(frame.origin)
+            }
+        }
     }
 }

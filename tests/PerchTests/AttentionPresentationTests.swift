@@ -29,10 +29,20 @@ final class AttentionPresentationTests: XCTestCase {
         let presentation = AttentionPresentation(sessions: [
             session(id: "unknown", state: .unknown, confidence: .unknown),
             session(id: "stale", state: .unknown, confidence: .stale),
+            session(id: "unverified-wait", state: .waiting, confidence: .unknown),
+            session(id: "stale-work", state: .working, confidence: .stale),
         ])
 
         XCTAssertEqual(presentation.waitingCount, 0)
-        XCTAssertEqual(presentation.uncertainCount, 2)
+        XCTAssertEqual(presentation.workingCount, 0)
+        XCTAssertEqual(presentation.restingCount, 0)
+        XCTAssertEqual(presentation.uncertainCount, 4)
+        XCTAssertEqual(presentation.dominantState, .unknown)
+        XCTAssertNil(presentation.allSessions.first { $0.id.value == "unverified-wait" }?.waitingAction)
+        XCTAssertEqual(
+            presentation.waitingCount + presentation.workingCount + presentation.restingCount + presentation.uncertainCount,
+            presentation.observedCount
+        )
     }
 
     func testWaitingActionsUseBoundedCategories() {

@@ -5,8 +5,23 @@ struct AttentionOverviewView: View {
     let mode: PanelMode
     let isHovered: Bool
     let isKeyboardFocused: Bool
+    let showsModeControl: Bool
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
     @Environment(\.colorSchemeContrast) private var contrast
+
+    init(
+        presentation: AttentionPresentation,
+        mode: PanelMode,
+        isHovered: Bool = false,
+        isKeyboardFocused: Bool = false,
+        showsModeControl: Bool = true
+    ) {
+        self.presentation = presentation
+        self.mode = mode
+        self.isHovered = isHovered
+        self.isKeyboardFocused = isKeyboardFocused
+        self.showsModeControl = showsModeControl
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: PerchDesign.Space.row) {
@@ -27,21 +42,23 @@ struct AttentionOverviewView: View {
             .frame(maxWidth: .infinity, alignment: .center)
 
             HStack {
-                Text(footerSummary)
+                Text(summaryStatus)
                     .monospacedDigit()
                 Spacer()
-                Label(mode.rawValue, systemImage: "arrow.left.arrow.right")
+                if showsModeControl {
+                    Label(mode == .attention ? "Show all activity" : "Show attention", systemImage: "arrow.left.arrow.right")
+                }
             }
             .font(.caption2)
             .foregroundStyle(.secondary)
         }
         .padding(PerchDesign.Space.section)
-        .background(isHovered ? Color.primary.opacity(0.055) : PerchDesign.ColorRole.subtleSurface)
+        .background(isHovered && showsModeControl ? Color.primary.opacity(0.055) : PerchDesign.ColorRole.subtleSurface)
         .clipShape(RoundedRectangle(cornerRadius: PerchDesign.Shape.groupRadius, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: PerchDesign.Shape.groupRadius, style: .continuous)
                 .stroke(
-                    isKeyboardFocused ? Color.accentColor : PerchDesign.ColorRole.separator,
+                    isKeyboardFocused && showsModeControl ? Color.accentColor : PerchDesign.ColorRole.separator,
                     lineWidth: isKeyboardFocused || contrast == .increased ? 1.5 : 1
                 )
         }
@@ -92,7 +109,7 @@ struct AttentionOverviewView: View {
             .foregroundStyle(color(for: item))
             .frame(width: 24, height: 26)
             .background {
-                if item.session.state == .waiting {
+                if item.presentedState == .waiting {
                     RoundedRectangle(cornerRadius: PerchDesign.Shape.attentionRadius, style: .continuous)
                         .stroke(PerchDesign.ColorRole.attention, style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
                 }
@@ -145,7 +162,10 @@ struct AttentionOverviewView: View {
         return "\(presentation.waitingCount) waiting · \(presentation.observedCount) observed"
     }
 
-    private var footerSummary: String {
-        "\(presentation.observedCount) agents observed"
+    private var summaryStatus: String {
+        if presentation.waitingCount > 0 { return "\(presentation.waitingCount) need you" }
+        if presentation.workingCount > 0 { return "\(presentation.workingCount) working" }
+        if presentation.restingCount > 0 { return "All resting" }
+        return presentation.observedCount == 0 ? "Watching providers" : "State uncertain"
     }
 }

@@ -20,11 +20,53 @@ enum PerchDesign {
     enum Shape {
         static let groupRadius: CGFloat = 12
         static let attentionRadius: CGFloat = 8
+        static let companionRadius: CGFloat = 20
     }
 
     enum Symbol {
         static let perchBird = Font.system(size: 17, weight: .medium)
         static let headerBird = Font.system(size: 22, weight: .semibold)
+    }
+}
+
+extension PerchDesign.ColorRole {
+    static func state(_ state: AgentState) -> Color {
+        switch state {
+        case .waiting: attention
+        case .working: working
+        case .idle, .done: resting
+        case .unknown: uncertain
+        }
+    }
+}
+
+struct PerchSurfaceHeader<Trailing: View>: View {
+    let presentation: AttentionPresentation
+    @ViewBuilder let trailing: () -> Trailing
+
+    var body: some View {
+        HStack(spacing: PerchDesign.Space.row) {
+            Image(systemName: presentation.dominantState == .unknown ? "bird" : "bird.fill")
+                .font(PerchDesign.Symbol.headerBird)
+                .foregroundStyle(PerchDesign.ColorRole.state(presentation.dominantState))
+                .frame(width: 30, height: 30)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Perch")
+                    .font(.headline)
+                Text(statusText)
+                    .font(.caption)
+                    .foregroundStyle(presentation.waitingCount > 0 ? PerchDesign.ColorRole.attention : .secondary)
+                    .monospacedDigit()
+            }
+            Spacer()
+            trailing()
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private var statusText: String {
+        presentation.waitingCount == 0 ? "Nothing needs you" : "\(presentation.waitingCount) need you"
     }
 }
 
