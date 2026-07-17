@@ -141,7 +141,7 @@ final class CodexAdapterTests: XCTestCase {
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
 
         let executable = directory.appending(path: "codex")
-        try "#!/bin/sh\necho 'codex-cli 0.144.2'\n".write(to: executable, atomically: true, encoding: .utf8)
+        try "#!/bin/sh\necho 'codex-cli 0.145.0-alpha.18'\n".write(to: executable, atomically: true, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
 
         let visibleRollout = try fixture([event("task_started")])

@@ -18,7 +18,7 @@ documented in [ROADMAP.md](ROADMAP.md). The design decision is recorded in
 
 | Provider | Validated version | Observation | Focus | Known limit |
 | --- | --- | --- | --- | --- |
-| Codex Desktop | `0.144.0-alpha.4`, `0.144.2` | Local thread database and structured rollout events | Specific task through `codex://threads/<id>` | Other versions fail closed to `unknown` |
+| Codex Desktop | `0.144.0-alpha.4`, `0.144.2`, `0.145.0-alpha.18` | Local thread database and structured rollout events | Specific task through `codex://threads/<id>` | Other versions fail closed to `unknown` |
 | Claude Desktop | Claude Code `2.1.205` | Desktop registry, registered structured transcripts, and metadata-only permission events | Unavailable | No validated task-level deep link |
 
 Claude Code running in Ghostty is intentionally unsupported in v0.1 because
