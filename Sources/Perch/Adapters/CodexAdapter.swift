@@ -7,6 +7,7 @@ actor CodexAdapter: AgentProviderAdapter {
 
     private let homeDirectory: URL
     private let codexExecutable: URL
+    private let versionTimeout: TimeInterval
     private let sqliteExecutable = URL(fileURLWithPath: "/usr/bin/sqlite3")
     private let validatedVersions: Set<String> = ["0.144.0-alpha.4", "0.144.2"]
     private var cachedVersion: (signature: String, value: String)?
@@ -14,11 +15,13 @@ actor CodexAdapter: AgentProviderAdapter {
     init(
         isEnabled: Bool = true,
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser,
-        codexExecutable: URL = URL(fileURLWithPath: "/Applications/ChatGPT.app/Contents/Resources/codex")
+        codexExecutable: URL = URL(fileURLWithPath: "/Applications/ChatGPT.app/Contents/Resources/codex"),
+        versionTimeout: TimeInterval = 2
     ) {
         self.isEnabled = isEnabled
         self.homeDirectory = homeDirectory
         self.codexExecutable = codexExecutable
+        self.versionTimeout = versionTimeout
     }
 
     func listSessions() async throws -> [AgentSession] {
@@ -64,6 +67,7 @@ actor CodexAdapter: AgentProviderAdapter {
         let data = try await BoundedProcess.run(
             executable: codexExecutable,
             arguments: ["--version"],
+            timeout: versionTimeout,
             outputLimit: 1_024
         )
         let output = String(decoding: data, as: UTF8.self)
@@ -82,6 +86,8 @@ actor CodexAdapter: AgentProviderAdapter {
         SELECT id, cwd, rollout_path, updated_at
         FROM threads
         WHERE archived = 0
+          AND preview <> ''
+          AND thread_source = 'user'
           AND updated_at >= CAST(strftime('%s','now') AS INTEGER) - 3600
         ORDER BY updated_at DESC
         LIMIT 50;
@@ -120,60 +126,113 @@ actor CodexAdapter: AgentProviderAdapter {
         guard let data = try? handle.readToEnd() else { return .unknown }
 
         var taskActive = false
-        var outstandingInputs = Set<String>()
-        var outstandingExecutions = Set<String>()
-        var outstandingApprovals = Set<String>()
-        var approvalsReviewer: String?
+        var tools = ToolActivityNormalizer()
 
         for line in data.split(separator: 0x0A) {
             guard let envelope = try? JSONSerialization.jsonObject(with: Data(line)) as? [String: Any],
                   let payload = envelope["payload"] as? [String: Any] else { continue }
             let type = payload["type"] as? String
-            if envelope["type"] as? String == "turn_context" {
-                approvalsReviewer = payload["approvals_reviewer"] as? String
-            }
             switch type {
             case "task_started": taskActive = true
-            case "task_complete": taskActive = false
+            case "task_complete":
+                taskActive = false
+                tools.clear()
             case "turn_aborted":
                 taskActive = false
-                outstandingInputs.removeAll()
-                outstandingExecutions.removeAll()
-                outstandingApprovals.removeAll()
-            case "function_call" where payload["name"] as? String == "request_user_input":
-                if let callID = payload["call_id"] as? String { outstandingInputs.insert(callID) }
-            case "function_call_output":
-                if let callID = payload["call_id"] as? String { outstandingInputs.remove(callID) }
-            case "custom_tool_call" where payload["name"] as? String == "exec":
-                if let callID = payload["call_id"] as? String {
-                    outstandingExecutions.insert(callID)
-                    if let input = payload["input"] as? String,
-                       let inputData = input.data(using: .utf8),
-                       let metadata = try? JSONSerialization.jsonObject(with: inputData) as? [String: Any],
-                       metadata["sandbox_permissions"] as? String == "require_escalated" {
-                        outstandingApprovals.insert(callID)
-                    }
-                }
-            case "custom_tool_call_output":
-                if let callID = payload["call_id"] as? String {
-                    outstandingExecutions.remove(callID)
-                    outstandingApprovals.remove(callID)
-                }
+                tools.clear()
+            case "function_call", "custom_tool_call": tools.started(payload)
+            case "function_call_output", "custom_tool_call_output": tools.finished(payload)
             default: break
             }
         }
 
-        if !outstandingApprovals.isEmpty ||
-            (!outstandingExecutions.isEmpty && approvalsReviewer == "user") {
-            return ParsedState(state: .waiting, waitingOn: "permission required", confidence: .observed)
-        }
-        if !outstandingInputs.isEmpty {
-            return ParsedState(state: .waiting, waitingOn: "input required", confidence: .observed)
-        }
+        if tools.hasHumanBlock { return ParsedState(state: .waiting, waitingOn: tools.waitingReason, confidence: .observed) }
+        if tools.hasAmbiguousBlock { return .unknown }
+        if tools.hasActiveTool { return ParsedState(state: .working, waitingOn: nil, confidence: .observed) }
         if taskActive {
             return ParsedState(state: .working, waitingOn: nil, confidence: .observed)
         }
         return ParsedState(state: .idle, waitingOn: nil, confidence: .observed)
+    }
+}
+
+private struct ToolActivityNormalizer {
+    private var active = Set<String>()
+    private var humanBlocked: [String: String] = [:]
+    private var ambiguous = Set<String>()
+
+    var hasActiveTool: Bool { !active.isEmpty }
+    var hasHumanBlock: Bool { !humanBlocked.isEmpty }
+    var hasAmbiguousBlock: Bool { !ambiguous.isEmpty }
+    var waitingReason: String { humanBlocked.values.first ?? "intervention required" }
+
+    mutating func started(_ payload: [String: Any]) {
+        guard let callID = payload["call_id"] as? String else { return }
+        active.insert(callID)
+        if payload["name"] as? String == "request_user_input" {
+            humanBlocked[callID] = "input required"
+            return
+        }
+        let arguments = payload["arguments"] as? String
+        guard let raw = arguments ?? (payload["input"] as? String) else { return }
+        if Self.rawInputRequiresHuman(raw) {
+            humanBlocked[callID] = "permission required"
+            return
+        }
+        guard let data = raw.data(using: .utf8),
+              let metadata = try? JSONSerialization.jsonObject(with: data) else {
+            // Function-call arguments have a JSON contract, so malformed data
+            // is ambiguous. Custom tool input may legitimately be provider
+            // wrapper source (for example `exec` JavaScript); absent an exact
+            // human-block marker it is ordinary active execution.
+            if arguments != nil { ambiguous.insert(callID) }
+            return
+        }
+        if Self.requiresHuman(metadata) { humanBlocked[callID] = "permission required" }
+    }
+
+    mutating func finished(_ payload: [String: Any]) {
+        guard let callID = payload["call_id"] as? String else { return }
+        active.remove(callID); humanBlocked.removeValue(forKey: callID); ambiguous.remove(callID)
+    }
+
+    mutating func clear() {
+        active.removeAll(); humanBlocked.removeAll(); ambiguous.removeAll()
+    }
+
+    private static func requiresHuman(_ value: Any) -> Bool {
+        if let dictionary = value as? [String: Any] {
+            for (key, child) in dictionary {
+                let key = key.lowercased().replacingOccurrences(of: "_", with: "")
+                if key == "sandboxpermissions", child as? String == "require_escalated" { return true }
+                if ["requiresapproval", "requiresconfirmation", "requiresintervention", "humanapprovalrequired"].contains(key), child as? Bool == true { return true }
+                if ["approvalstatus", "confirmationstatus", "interventionstatus"].contains(key),
+                   let status = child as? String,
+                   ["required", "pending", "waiting", "requested"].contains(status.lowercased()) { return true }
+                if requiresHuman(child) { return true }
+            }
+        } else if let array = value as? [Any] {
+            return array.contains(where: requiresHuman)
+        }
+        return false
+    }
+
+    private static func rawInputRequiresHuman(_ raw: String) -> Bool {
+        let compact = raw
+            .replacingOccurrences(of: " ", with: "")
+            .replacingOccurrences(of: "\n", with: "")
+            .replacingOccurrences(of: "\\\"", with: "\"")
+        let explicitValues = [
+            "sandbox_permissions:\"require_escalated\"",
+            "\"sandbox_permissions\":\"require_escalated\"",
+            "requires_approval:true",
+            "\"requires_approval\":true",
+            "requires_confirmation:true",
+            "\"requires_confirmation\":true",
+            "requires_intervention:true",
+            "\"requires_intervention\":true",
+        ]
+        return explicitValues.contains(where: compact.contains)
     }
 }
 
