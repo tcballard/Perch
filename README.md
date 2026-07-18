@@ -7,10 +7,11 @@ Perch observes existing sessions and can focus a validated native surface. It
 does not create tasks, answer prompts, grant approvals, control agents, or send
 provider data over the network.
 
-PR #1 delivered the internal `v0.0.1` observation-engine foundation. The current
-panel is a diagnostic vertical slice; the product path toward the first signed
-`v0.1.0` release is documented in [ROADMAP.md](ROADMAP.md). The waiting-first
-v0.0.2 design recommendation is in
+PR #1 delivered the internal `v0.0.1` observation-engine foundation. The
+`v0.0.2` panel adds a waiting-first attention layer: a compact ambient summary,
+an actionable human-handoff queue, and secondary access to all observed
+activity. The product path toward the first signed `v0.1.0` release is
+documented in [ROADMAP.md](ROADMAP.md). The design decision is recorded in
 [docs/design/v0.0.2-attention-layer.md](docs/design/v0.0.2-attention-layer.md).
 The provider-scaling identity, evidence, and reducer boundaries are recorded in
 [ADR 0001](docs/adr/0001-observation-boundaries.md).

@@ -11,18 +11,25 @@ final class RosterCoordinator {
     private let adapters: [any AgentProviderAdapter]
     private let pollingInterval: Duration
     private let staleRetention: Duration
+    private let widgetSnapshotPublisher: WidgetSnapshotPublisher?
     private var pollingTasks: [SourceID: Task<Void, Never>] = [:]
     private var projectionTask: Task<Void, Never>?
     private var lastSuccess: [SourceID: ContinuousClock.Instant] = [:]
     private var reducer = AttentionReducer()
     private let logger = Logger(subsystem: "com.tcballard.perch", category: "Polling")
 
-    init(adapters: [any AgentProviderAdapter], pollingInterval: Duration, staleRetention: Duration = .seconds(15)) {
+    init(
+        adapters: [any AgentProviderAdapter],
+        pollingInterval: Duration,
+        staleRetention: Duration = .seconds(15),
+        widgetSnapshotPublisher: WidgetSnapshotPublisher? = nil
+    ) {
         let sourceIDs = adapters.map { $0.source.id }
         precondition(Set(sourceIDs).count == sourceIDs.count, "Observation source IDs must be unique")
         self.adapters = adapters
         self.pollingInterval = pollingInterval
         self.staleRetention = staleRetention
+        self.widgetSnapshotPublisher = widgetSnapshotPublisher
     }
 
     var waitingCount: Int {
@@ -138,6 +145,7 @@ final class RosterCoordinator {
     private func publish(now: Date) {
         sessions = reducer.sessions(at: now).sorted(by: Self.sortSessions)
         lastRefresh = now
+        widgetSnapshotPublisher?.publish(sessions: sessions, at: now)
     }
 
     func focus(_ session: AgentSession) async throws {

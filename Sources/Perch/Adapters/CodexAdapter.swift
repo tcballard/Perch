@@ -7,6 +7,7 @@ actor CodexAdapter: AgentProviderAdapter {
 
     private let homeDirectory: URL
     private let codexExecutable: URL
+    private let versionTimeout: TimeInterval
     private let sqliteExecutable = URL(fileURLWithPath: "/usr/bin/sqlite3")
     private let validatedVersions: Set<String> = ["0.144.0-alpha.4", "0.144.2", "0.145.0-alpha.18"]
     private var cachedVersion: (signature: String, value: String)?
@@ -15,11 +16,13 @@ actor CodexAdapter: AgentProviderAdapter {
     init(
         isEnabled: Bool = true,
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser,
-        codexExecutable: URL = URL(fileURLWithPath: "/Applications/ChatGPT.app/Contents/Resources/codex")
+        codexExecutable: URL = URL(fileURLWithPath: "/Applications/ChatGPT.app/Contents/Resources/codex"),
+        versionTimeout: TimeInterval = 2
     ) {
         self.isEnabled = isEnabled
         self.homeDirectory = homeDirectory
         self.codexExecutable = codexExecutable
+        self.versionTimeout = versionTimeout
     }
 
     func observations(observedAt: Date) async throws -> EvidenceBatch {
@@ -92,6 +95,7 @@ actor CodexAdapter: AgentProviderAdapter {
         let data = try await BoundedProcess.run(
             executable: codexExecutable,
             arguments: ["--version"],
+            timeout: versionTimeout,
             outputLimit: 1_024
         )
         let output = String(decoding: data, as: UTF8.self)
@@ -110,6 +114,8 @@ actor CodexAdapter: AgentProviderAdapter {
         SELECT id, cwd, rollout_path, updated_at
         FROM threads
         WHERE archived = 0
+          AND preview <> ''
+          AND thread_source = 'user'
           AND updated_at >= CAST(strftime('%s','now') AS INTEGER) - 3600
         ORDER BY updated_at DESC
         LIMIT 50;
@@ -148,9 +154,7 @@ actor CodexAdapter: AgentProviderAdapter {
         guard let data = try? handle.readToEnd() else { return .unknown }
 
         var taskActive = false
-        var outstandingInputs: [String: PendingTransition] = [:]
-        var outstandingExecutions: [String: PendingTransition] = [:]
-        var outstandingApprovals: [String: PendingTransition] = [:]
+        var tools = ToolActivityNormalizer()
         var approvalsReviewer: String?
         var lastTransitionAt: Date?
         var invalid = false
@@ -171,73 +175,29 @@ actor CodexAdapter: AgentProviderAdapter {
                 invalid = false
             case "task_complete":
                 taskActive = false
-                outstandingInputs.removeAll()
-                outstandingExecutions.removeAll()
-                outstandingApprovals.removeAll()
+                tools.clear()
                 lastTransitionAt = eventAt ?? lastTransitionAt
                 invalid = false
             case "turn_aborted":
                 taskActive = false
-                outstandingInputs.removeAll()
-                outstandingExecutions.removeAll()
-                outstandingApprovals.removeAll()
+                tools.clear()
                 lastTransitionAt = eventAt ?? lastTransitionAt
                 invalid = false
-            case "function_call" where payload["name"] as? String == "request_user_input":
-                if let callID = payload["call_id"] as? String {
-                    outstandingInputs[callID] = PendingTransition(at: eventAt)
-                }
-            case "function_call_output":
-                if let callID = payload["call_id"] as? String {
-                    if outstandingInputs.removeValue(forKey: callID) != nil {
-                        lastTransitionAt = eventAt ?? lastTransitionAt
-                    } else if !outstandingInputs.isEmpty ||
-                                !outstandingExecutions.isEmpty ||
-                                !outstandingApprovals.isEmpty {
-                        invalid = true
-                    }
-                }
-            case "custom_tool_call" where payload["name"] as? String == "exec":
-                if let callID = payload["call_id"] as? String {
-                    let transition = PendingTransition(at: eventAt)
-                    outstandingExecutions[callID] = transition
-                    if let input = payload["input"] as? String,
-                       let inputData = input.data(using: .utf8),
-                       let metadata = try? JSONSerialization.jsonObject(with: inputData) as? [String: Any],
-                       metadata["sandbox_permissions"] as? String == "require_escalated" {
-                        outstandingApprovals[callID] = transition
-                    }
-                }
-            case "custom_tool_call_output":
-                if let callID = payload["call_id"] as? String {
-                    let removedExecution = outstandingExecutions.removeValue(forKey: callID)
-                    let removedApproval = outstandingApprovals.removeValue(forKey: callID)
-                    if removedExecution != nil || removedApproval != nil {
-                        lastTransitionAt = eventAt ?? lastTransitionAt
-                    } else if !outstandingInputs.isEmpty ||
-                                !outstandingExecutions.isEmpty ||
-                                !outstandingApprovals.isEmpty {
-                        invalid = true
-                    }
-                }
+            case "function_call", "custom_tool_call":
+                tools.started(payload, at: eventAt, approvalsReviewer: approvalsReviewer)
+                lastTransitionAt = eventAt ?? lastTransitionAt
+            case "function_call_output", "custom_tool_call_output":
+                if !tools.finished(payload) { invalid = true }
+                lastTransitionAt = eventAt ?? lastTransitionAt
             default: break
             }
         }
 
-        guard !invalid else { return .unknown }
-        let permissionIDs = approvalsReviewer == "user"
-            ? Set(outstandingExecutions.keys).union(outstandingApprovals.keys)
-            : Set(outstandingApprovals.keys)
-        let permissionHandoffs: [(String, AttentionReason, PendingTransition?)] = permissionIDs.map { id in
-            (id, AttentionReason.permission, outstandingApprovals[id] ?? outstandingExecutions[id])
-        }
-        let inputHandoffs: [(String, AttentionReason, PendingTransition?)] = outstandingInputs.map { entry in
-            (entry.key, AttentionReason.input, Optional(entry.value))
-        }
-        let handoffs = permissionHandoffs + inputHandoffs
+        guard !invalid, !tools.hasAmbiguousBlock else { return .unknown }
+        let handoffs = tools.handoffs
         guard handoffs.count <= 1 else { return .unknown }
-        if let (id, reason, transition) = handoffs.first {
-            guard let transition, let openedAt = transition.at else { return .unknown }
+        if let (id, reason, openedAt) = handoffs.first {
+            guard let openedAt else { return .unknown }
             return ParsedState(
                 state: .waiting,
                 attentionReason: reason,
@@ -269,6 +229,110 @@ actor CodexAdapter: AgentProviderAdapter {
     }
 }
 
+private struct ToolActivityNormalizer {
+    private struct Activity {
+        let openedAt: Date?
+        let reason: AttentionReason?
+    }
+
+    private var active: [String: Activity] = [:]
+    private var ambiguous = Set<String>()
+
+    var hasActiveTool: Bool { !active.isEmpty }
+    var hasAmbiguousBlock: Bool { !ambiguous.isEmpty }
+    var handoffs: [(String, AttentionReason, Date?)] {
+        active.compactMap { id, activity in
+            activity.reason.map { (id, $0, activity.openedAt) }
+        }
+    }
+
+    mutating func started(
+        _ payload: [String: Any],
+        at eventAt: Date?,
+        approvalsReviewer: String?
+    ) {
+        guard let callID = payload["call_id"] as? String else { return }
+        if payload["name"] as? String == "request_user_input" {
+            active[callID] = Activity(openedAt: eventAt, reason: .input)
+            return
+        }
+        if approvalsReviewer == "user" {
+            active[callID] = Activity(openedAt: eventAt, reason: .permission)
+            return
+        }
+        let arguments = payload["arguments"] as? String
+        guard let raw = arguments ?? (payload["input"] as? String) else {
+            active[callID] = Activity(openedAt: eventAt, reason: nil)
+            return
+        }
+        if Self.rawInputRequiresHuman(raw) {
+            active[callID] = Activity(openedAt: eventAt, reason: .permission)
+            return
+        }
+        guard let data = raw.data(using: .utf8),
+              let metadata = try? JSONSerialization.jsonObject(with: data) else {
+            // Function-call arguments have a JSON contract, so malformed data
+            // is ambiguous. Custom tool input may legitimately be provider
+            // wrapper source (for example `exec` JavaScript); absent an exact
+            // human-block marker it is ordinary active execution.
+            active[callID] = Activity(openedAt: eventAt, reason: nil)
+            if arguments != nil { ambiguous.insert(callID) }
+            return
+        }
+        active[callID] = Activity(
+            openedAt: eventAt,
+            reason: Self.requiresHuman(metadata) ? .permission : nil
+        )
+    }
+
+    mutating func finished(_ payload: [String: Any]) -> Bool {
+        guard let callID = payload["call_id"] as? String else { return false }
+        let removed = active.removeValue(forKey: callID) != nil
+        ambiguous.remove(callID)
+        return removed
+    }
+
+    mutating func clear() {
+        active.removeAll()
+        ambiguous.removeAll()
+    }
+
+    private static func requiresHuman(_ value: Any) -> Bool {
+        if let dictionary = value as? [String: Any] {
+            for (key, child) in dictionary {
+                let key = key.lowercased().replacingOccurrences(of: "_", with: "")
+                if key == "sandboxpermissions", child as? String == "require_escalated" { return true }
+                if ["requiresapproval", "requiresconfirmation", "requiresintervention", "humanapprovalrequired"].contains(key), child as? Bool == true { return true }
+                if ["approvalstatus", "confirmationstatus", "interventionstatus"].contains(key),
+                   let status = child as? String,
+                   ["required", "pending", "waiting", "requested"].contains(status.lowercased()) { return true }
+                if requiresHuman(child) { return true }
+            }
+        } else if let array = value as? [Any] {
+            return array.contains(where: requiresHuman)
+        }
+        return false
+    }
+
+    private static func rawInputRequiresHuman(_ raw: String) -> Bool {
+        let compact = raw
+            .replacingOccurrences(of: " ", with: "")
+            .replacingOccurrences(of: "\n", with: "")
+            .replacingOccurrences(of: "\\\"", with: "\"")
+        let explicitValues = [
+            "sandbox_permissions:\"require_escalated\"",
+            "\"sandbox_permissions\":\"require_escalated\"",
+            "requires_approval:true",
+            "\"requires_approval\":true",
+            "requires_confirmation:true",
+            "\"requires_confirmation\":true",
+            "requires_intervention:true",
+            "\"requires_intervention\":true",
+        ]
+        return explicitValues.contains(where: compact.contains)
+    }
+}
+
 extension CodexAdapter {
     struct ParsedState: Equatable {
         let state: AgentState
@@ -286,7 +350,6 @@ extension CodexAdapter {
         )
     }
 
-    private struct PendingTransition { let at: Date? }
     private struct ThreadRow {
         let id: String
         let cwd: URL

@@ -16,18 +16,46 @@ targets:
     platform: macOS
     sources:
       - Sources/Perch
+      - Sources/Shared
+    dependencies:
+      - target: PerchWidget
+        embed: true
     info:
       path: Sources/Perch/Info.plist
       properties:
         CFBundleDisplayName: Perch
+        CFBundleShortVersionString: "0.0.2"
+        CFBundleVersion: "6"
         LSApplicationCategoryType: public.app-category.developer-tools
         LSMinimumSystemVersion: "14.0"
         LSUIElement: true
         NSHumanReadableCopyright: Copyright © 2026 Tom Ballard. All rights reserved.
     settings:
       base:
+        CODE_SIGN_ENTITLEMENTS: Sources/Perch/Perch.entitlements
         PRODUCT_BUNDLE_IDENTIFIER: com.tcballard.perch
         PRODUCT_NAME: Perch
+  PerchWidget:
+    type: app-extension
+    platform: macOS
+    sources:
+      - Sources/PerchWidget
+      - Sources/Shared
+    info:
+      path: Sources/PerchWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Perch
+        CFBundleShortVersionString: "0.0.2"
+        CFBundleVersion: "6"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        APPLICATION_EXTENSION_API_ONLY: true
+        CODE_SIGN_ENTITLEMENTS: Sources/PerchWidget/PerchWidget.entitlements
+        PRODUCT_BUNDLE_IDENTIFIER: com.tcballard.perch.widget
+        PRODUCT_NAME: PerchWidget
+        SKIP_INSTALL: true
   PerchTests:
     type: bundle.unit-test
     platform: macOS
