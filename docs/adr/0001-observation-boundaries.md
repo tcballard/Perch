@@ -1,6 +1,6 @@
 # ADR 0001: Observation boundaries and scalable provider integration
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-07-18
 - **Decision owners:** Perch maintainers
 
