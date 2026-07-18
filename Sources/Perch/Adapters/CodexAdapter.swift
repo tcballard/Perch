@@ -8,7 +8,7 @@ actor CodexAdapter: AgentProviderAdapter {
     private let homeDirectory: URL
     private let codexExecutable: URL
     private let sqliteExecutable = URL(fileURLWithPath: "/usr/bin/sqlite3")
-    private let validatedVersions: Set<String> = ["0.144.0-alpha.4", "0.144.2"]
+    private let validatedVersions: Set<String> = ["0.144.0-alpha.4", "0.144.2", "0.145.0-alpha.18"]
     private var cachedVersion: (signature: String, value: String)?
     private var sequence: UInt64 = 0
 

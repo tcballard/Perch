@@ -43,6 +43,46 @@ final class CodexAdapterTests: XCTestCase {
         XCTAssertNil(CodexAdapter.parseRollout(at: resumed).attentionReason)
     }
 
+    func testCurrentResponseItemPermissionWrapperAndMatchingOutput() throws {
+        let inputData = try JSONSerialization.data(
+            withJSONObject: ["sandbox_permissions": "require_escalated"]
+        )
+        let input = String(decoding: inputData, as: UTF8.self)
+        let turnContext: [String: Any] = [
+            "timestamp": "2026-07-18T00:00:00Z",
+            "type": "turn_context",
+            "payload": ["approvals_reviewer": "auto_review"],
+        ]
+        let permissionCall: [String: Any] = [
+            "timestamp": "2026-07-18T00:00:01Z",
+            "type": "response_item",
+            "payload": [
+                "type": "custom_tool_call",
+                "name": "exec",
+                "call_id": "exec-current",
+                "input": input,
+            ],
+        ]
+        let permissionOutput: [String: Any] = [
+            "timestamp": "2026-07-18T00:00:02Z",
+            "type": "response_item",
+            "payload": [
+                "type": "custom_tool_call_output",
+                "call_id": "exec-current",
+            ],
+        ]
+
+        let waiting = try fixture([turnContext, event("task_started"), permissionCall])
+        let parsed = CodexAdapter.parseRollout(at: waiting)
+        XCTAssertEqual(parsed.state, .waiting)
+        XCTAssertEqual(parsed.attentionReason, .permission)
+        XCTAssertEqual(parsed.handoffToken?.rawValue, "permission:exec-current")
+
+        let resumed = try fixture([turnContext, event("task_started"), permissionCall, permissionOutput])
+        XCTAssertEqual(CodexAdapter.parseRollout(at: resumed).state, .working)
+        XCTAssertNil(CodexAdapter.parseRollout(at: resumed).attentionReason)
+    }
+
     func testTaskCompletionClearsOutstandingHandoff() throws {
         let completed = try fixture([
             event("task_started"),

@@ -89,6 +89,16 @@ call-ID, abort, and task lifecycle shapes. Compatibility is therefore explicitly
 allowed for `0.144.0-alpha.4` and `0.144.2` only; later versions still fail
 closed until separately validated.
 
+On 18 July 2026, the installed Codex `0.145.0-alpha.18` rollout was separately
+checked against fresh local metadata-only records. It retained the structured
+`task_started`/`task_complete` lifecycle events, `turn_context` approval policy,
+and `response_item` wrappers carrying correlated `custom_tool_call` and
+`custom_tool_call_output` payloads. A sanitized regression covers that exact
+permission open/close shape. The installed build then observed a real harmless
+escalated `exec` call and its matching output; the approval completed too
+quickly to claim a visible waiting-latency measurement. No prompt or response
+content was retained, and unrecognized versions continue to fail closed.
+
 ## Controlled transition evidence
 
 ### Codex desktop
