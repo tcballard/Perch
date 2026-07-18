@@ -15,6 +15,6 @@ struct PerchWidget: Widget {
         }
         .configurationDisplayName("Perch Attention")
         .description("See which local coding agent needs you.")
-        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .systemExtraLarge])
     }
 }

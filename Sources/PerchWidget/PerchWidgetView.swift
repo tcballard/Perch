@@ -9,6 +9,8 @@ struct PerchWidgetView: View {
         Group {
             if let snapshot = entry.snapshot, !entry.isStale {
                 switch family {
+                case .systemExtraLarge:
+                    extraLarge(snapshot)
                 case .systemLarge:
                     large(snapshot)
                 case .systemMedium:
@@ -145,6 +147,101 @@ struct PerchWidgetView: View {
             .font(.caption2)
             .foregroundStyle(.tertiary)
             .accessibilityElement(children: .combine)
+        }
+    }
+
+    private func extraLarge(_ snapshot: PerchWidgetSnapshot) -> some View {
+        HStack(spacing: 24) {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(alignment: .firstTextBaseline) {
+                    header(snapshot.dominantState)
+                    Spacer()
+                    freshness(snapshot.generatedAt)
+                }
+
+                Spacer(minLength: 0)
+
+                Image(systemName: snapshot.dominantState == .uncertain ? "bird" : "bird.fill")
+                    .font(.system(size: 42, weight: .medium))
+                    .foregroundStyle(color(snapshot.dominantState))
+                    .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(headline(snapshot))
+                        .font(.title.weight(.semibold))
+                        .foregroundStyle(color(snapshot.dominantState))
+                    Text(summary(snapshot))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+
+                Spacer(minLength: 0)
+
+                stateRail(snapshot)
+
+                HStack(spacing: 5) {
+                    Image(systemName: "lock")
+                    Text("Local observation only")
+                }
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .accessibilityElement(children: .combine)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Attention")
+                        .font(.title3.weight(.semibold))
+                    if snapshot.waitingCount > 0 {
+                        Text("\(snapshot.waitingCount)")
+                            .font(.caption.weight(.semibold).monospacedDigit())
+                            .foregroundStyle(.orange)
+                    }
+                    Spacer()
+                    Text("Waiting handoffs")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Divider()
+
+                if snapshot.waitingHandoffs.isEmpty {
+                    largeEmptyState(snapshot)
+                } else {
+                    VStack(spacing: 0) {
+                        ForEach(Array(snapshot.waitingHandoffs.prefix(3).enumerated()), id: \.offset) { index, handoff in
+                            largeHandoffRow(handoff)
+                            if index < min(snapshot.waitingHandoffs.count, 3) - 1 {
+                                Divider()
+                                    .padding(.leading, 25)
+                            }
+                        }
+                    }
+
+                    if snapshot.waitingCount > snapshot.waitingHandoffs.count {
+                        Text("+ \(snapshot.waitingCount - snapshot.waitingHandoffs.count) more waiting")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer(minLength: 0)
+                }
+
+                HStack {
+                    Text("No session content stored")
+                    Spacer()
+                    if snapshot.waitingCount == 0 {
+                        Text("All caught up")
+                    }
+                }
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
