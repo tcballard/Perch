@@ -319,7 +319,24 @@ struct PerchWidgetView: View {
         Spacer(minLength: 0)
     }
 
+    @ViewBuilder
     private func sessionRow(_ session: PerchWidgetSnapshot.SessionSummary) -> some View {
+        if let url = session.focusURL {
+            Link(destination: url) {
+                sessionRowContent(session, showsFocus: true)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Focus \(session.projectName), \(session.detail), \(session.providerName)")
+        } else {
+            sessionRowContent(session, showsFocus: false)
+                .accessibilityLabel("\(session.projectName), \(session.detail), \(session.providerName), focus unavailable")
+        }
+    }
+
+    private func sessionRowContent(
+        _ session: PerchWidgetSnapshot.SessionSummary,
+        showsFocus: Bool
+    ) -> some View {
         HStack(spacing: 8) {
             Image(systemName: session.state == .uncertain ? "bird" : "bird.fill")
                 .font(.caption.weight(.medium))
@@ -349,18 +366,15 @@ struct PerchWidgetView: View {
                     )
             }
 
-            if let url = session.focusURL {
-                Link(destination: url) {
-                    Image(systemName: "arrow.up.forward.app")
-                        .font(.caption.weight(.medium))
-                        .frame(width: 24, height: 24)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Focus \(session.projectName)")
+            if showsFocus {
+                Image(systemName: "arrow.up.forward.app")
+                    .font(.caption.weight(.medium))
+                    .frame(width: 24, height: 24)
+                    .accessibilityHidden(true)
             }
         }
         .frame(height: 35)
-        .accessibilityElement(children: .combine)
+        .contentShape(Rectangle())
     }
 
     private func stateRail(_ snapshot: PerchWidgetSnapshot) -> some View {
@@ -419,7 +433,24 @@ struct PerchWidgetView: View {
         Spacer(minLength: 0)
     }
 
+    @ViewBuilder
     private func largeHandoffRow(_ handoff: PerchWidgetSnapshot.WaitingHandoff) -> some View {
+        if let url = handoff.focusURL {
+            Link(destination: url) {
+                largeHandoffRowContent(handoff, showsFocus: true)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Focus \(handoff.projectName), \(handoff.action), \(handoff.providerName)")
+        } else {
+            largeHandoffRowContent(handoff, showsFocus: false)
+                .accessibilityLabel("\(handoff.projectName), \(handoff.action), \(handoff.providerName), focus unavailable")
+        }
+    }
+
+    private func largeHandoffRowContent(
+        _ handoff: PerchWidgetSnapshot.WaitingHandoff,
+        showsFocus: Bool
+    ) -> some View {
         HStack(spacing: 10) {
             Circle()
                 .fill(.orange)
@@ -442,19 +473,14 @@ struct PerchWidgetView: View {
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(.orange)
 
-            if let url = handoff.focusURL {
-                Link(destination: url) {
-                    Label("Focus", systemImage: "arrow.up.forward.app")
-                        .labelStyle(.iconOnly)
-                        .frame(width: 28, height: 28)
-                        .contentShape(Rectangle())
-                        .accessibilityLabel("Focus \(handoff.projectName)")
-                }
-                .buttonStyle(.plain)
+            if showsFocus {
+                Image(systemName: "arrow.up.forward.app")
+                    .frame(width: 28, height: 28)
+                    .accessibilityHidden(true)
             }
         }
         .padding(.vertical, 9)
-        .accessibilityElement(children: .combine)
+        .contentShape(Rectangle())
     }
 
     private func header(_ state: PerchWidgetSnapshot.State) -> some View {
@@ -468,7 +494,24 @@ struct PerchWidgetView: View {
         }
     }
 
+    @ViewBuilder
     private func handoffRow(_ handoff: PerchWidgetSnapshot.WaitingHandoff) -> some View {
+        if let url = handoff.focusURL {
+            Link(destination: url) {
+                handoffRowContent(handoff, showsFocus: true)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Focus \(handoff.projectName), \(handoff.action), \(handoff.providerName)")
+        } else {
+            handoffRowContent(handoff, showsFocus: false)
+                .accessibilityLabel("\(handoff.projectName), \(handoff.action), \(handoff.providerName), focus unavailable")
+        }
+    }
+
+    private func handoffRowContent(
+        _ handoff: PerchWidgetSnapshot.WaitingHandoff,
+        showsFocus: Bool
+    ) -> some View {
         HStack(spacing: 9) {
             Circle()
                 .fill(.orange)
@@ -491,15 +534,12 @@ struct PerchWidgetView: View {
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(.orange)
 
-            if let url = handoff.focusURL {
-                Link(destination: url) {
-                    Image(systemName: "arrow.up.forward.app")
-                        .accessibilityLabel("Focus \(handoff.projectName)")
-                }
-                .buttonStyle(.plain)
+            if showsFocus {
+                Image(systemName: "arrow.up.forward.app")
+                    .accessibilityHidden(true)
             }
         }
-        .accessibilityElement(children: .combine)
+        .contentShape(Rectangle())
     }
 
     private var unavailable: some View {
