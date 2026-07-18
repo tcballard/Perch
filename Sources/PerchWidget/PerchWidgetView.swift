@@ -151,56 +151,51 @@ struct PerchWidgetView: View {
     }
 
     private func extraLarge(_ snapshot: PerchWidgetSnapshot) -> some View {
-        HStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(alignment: .firstTextBaseline) {
-                    header(snapshot.dominantState)
-                    Spacer()
-                    freshness(snapshot.generatedAt)
-                }
+        VStack(spacing: 8) {
+            HStack(spacing: 10) {
+                header(snapshot.dominantState)
+                Text("·")
+                    .foregroundStyle(.tertiary)
+                Text(headline(snapshot))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(color(snapshot.dominantState))
+                Spacer()
+                freshness(snapshot.generatedAt)
+            }
 
+            Divider()
+
+            HStack(alignment: .top, spacing: 16) {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("Sessions")
-                        .font(.title3.weight(.semibold))
-                    Text("Filter observed activity")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                    Text("FILTER")
+                        .font(.caption2.weight(.semibold))
+                        .tracking(0.8)
+                        .foregroundStyle(.tertiary)
 
-                VStack(spacing: 6) {
-                    filterRow(.all, label: "All sessions", count: snapshot.sessions.count, symbol: "tray.full", state: nil)
+                    filterRow(.all, label: "All sessions", count: snapshot.sessions.count, symbol: "square.stack.3d.up", state: nil)
                     filterRow(.waiting, label: "Waiting", count: snapshot.waitingCount, symbol: "bird.fill", state: .waiting)
                     filterRow(.working, label: "Working", count: snapshot.workingCount, symbol: "bird.fill", state: .working)
                     filterRow(.resting, label: "Resting", count: snapshot.restingCount, symbol: "bird", state: .resting)
                     filterRow(.uncertain, label: "Uncertain", count: snapshot.uncertainCount, symbol: "bird", state: .uncertain)
+
+                    Spacer(minLength: 0)
                 }
+                .frame(width: 190, alignment: .leading)
 
-                Spacer(minLength: 0)
+                Divider()
 
-                HStack(spacing: 5) {
-                    Image(systemName: "lock")
-                    Text("Local observation only")
-                }
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-                .accessibilityElement(children: .combine)
-            }
-            .padding(.trailing, 22)
-            .frame(width: 250, alignment: .leading)
-
-            Divider()
-
-            VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 5) {
                 HStack(alignment: .firstTextBaseline) {
                     Text(filterTitle(entry.selectedFilter))
-                        .font(.title3.weight(.semibold))
+                        .font(.headline)
                     Text("\(filteredSessions(snapshot).count)")
-                            .font(.caption.weight(.semibold).monospacedDigit())
-                            .foregroundStyle(filterColor(entry.selectedFilter))
+                        .font(.caption2.weight(.semibold).monospacedDigit())
+                        .foregroundStyle(filterColor(entry.selectedFilter))
                     Spacer()
-                    Text("Observed sessions")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Text("PROJECT · STATUS · UPDATED")
+                        .font(.caption2.weight(.medium))
+                        .tracking(0.35)
+                        .foregroundStyle(.tertiary)
                 }
 
                 Divider()
@@ -210,34 +205,35 @@ struct PerchWidgetView: View {
                     filteredEmptyState(entry.selectedFilter)
                 } else {
                     VStack(spacing: 0) {
-                        ForEach(Array(sessions.prefix(8).enumerated()), id: \.offset) { index, session in
+                        ForEach(Array(sessions.prefix(6).enumerated()), id: \.offset) { index, session in
                             sessionRow(session)
-                            if index < min(sessions.count, 8) - 1 {
+                            if index < min(sessions.count, 6) - 1 {
                                 Divider()
-                                    .padding(.leading, 34)
+                                    .padding(.leading, 27)
                             }
                         }
                     }
 
-                    if sessions.count > 8 {
-                        Text("+ \(sessions.count - 8) more sessions")
-                            .font(.caption)
+                    if sessions.count > 6 {
+                        Text("+ \(sessions.count - 6) more")
+                            .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
-
-                    Spacer(minLength: 0)
                 }
-
-                HStack {
-                    Text("No session content stored")
-                    Spacer()
-                    Text(headline(snapshot))
-                }
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
             }
-            .padding(.leading, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
+
+            HStack(spacing: 5) {
+                Image(systemName: "lock")
+                Text("Local observation only")
+                Spacer()
+                Text("No session content stored")
+            }
+            .font(.caption2)
+            .foregroundStyle(.tertiary)
+            .accessibilityElement(children: .combine)
         }
     }
 
@@ -249,25 +245,37 @@ struct PerchWidgetView: View {
         state: PerchWidgetSnapshot.State?
     ) -> some View {
         Button(intent: SetPerchWidgetFilterIntent(filter: filter)) {
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
+                Capsule()
+                    .fill(entry.selectedFilter == filter ? filterAccent(filter) : .clear)
+                    .frame(width: 3, height: 18)
                 Image(systemName: symbol)
-                    .frame(width: 18)
+                    .font(.caption.weight(.medium))
+                    .frame(width: 16)
                     .foregroundStyle(state.map(color) ?? .secondary)
                 Text(label)
-                    .font(.subheadline.weight(entry.selectedFilter == filter ? .semibold : .regular))
+                    .font(.caption.weight(entry.selectedFilter == filter ? .semibold : .regular))
                 Spacer()
                 Text("\(count)")
-                    .font(.subheadline.monospacedDigit())
+                    .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .background(entry.selectedFilter == filter ? Color.primary.opacity(0.08) : .clear, in: RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, 7)
+            .frame(height: 30)
+            .background(entry.selectedFilter == filter ? Color.primary.opacity(0.055) : .clear, in: RoundedRectangle(cornerRadius: 6))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Show \(label.lowercased()), \(count)")
         .accessibilityAddTraits(entry.selectedFilter == filter ? .isSelected : [])
+    }
+
+    private func filterAccent(_ filter: PerchWidgetFilter) -> Color {
+        switch filter {
+        case .waiting: color(.waiting)
+        case .working: color(.working)
+        case .resting, .uncertain, .all: Color.secondary
+        }
     }
 
     private func filteredSessions(_ snapshot: PerchWidgetSnapshot) -> [PerchWidgetSnapshot.SessionSummary] {
@@ -312,18 +320,18 @@ struct PerchWidgetView: View {
     }
 
     private func sessionRow(_ session: PerchWidgetSnapshot.SessionSummary) -> some View {
-        HStack(spacing: 11) {
+        HStack(spacing: 8) {
             Image(systemName: session.state == .uncertain ? "bird" : "bird.fill")
-                .font(.body.weight(.medium))
+                .font(.caption.weight(.medium))
                 .foregroundStyle(color(session.state))
-                .frame(width: 22)
+                .frame(width: 18)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 1) {
                 Text(session.projectName)
-                    .font(.headline)
+                    .font(.subheadline.weight(.semibold))
                     .lineLimit(1)
                 Text("\(session.detail) · \(session.providerName)")
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
@@ -332,7 +340,8 @@ struct PerchWidgetView: View {
 
             if let date = session.activityAt {
                 Text(date, style: session.state == .waiting ? .timer : .relative)
-                    .font(.caption.monospacedDigit())
+                    .font(.caption2.monospacedDigit())
+                    .frame(width: 72, alignment: .trailing)
                     .foregroundStyle(
                         session.state == .waiting
                             ? color(.waiting)
@@ -343,13 +352,14 @@ struct PerchWidgetView: View {
             if let url = session.focusURL {
                 Link(destination: url) {
                     Image(systemName: "arrow.up.forward.app")
-                        .frame(width: 28, height: 28)
+                        .font(.caption.weight(.medium))
+                        .frame(width: 24, height: 24)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Focus \(session.projectName)")
             }
         }
-        .padding(.vertical, 9)
+        .frame(height: 35)
         .accessibilityElement(children: .combine)
     }
 
