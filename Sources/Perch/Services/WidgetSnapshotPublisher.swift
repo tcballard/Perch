@@ -75,6 +75,28 @@ final class WidgetSnapshotPublisher {
             )
         }
 
+        let summaries = presentation.allSessions
+            .sorted { lhs, rhs in
+                if lhs.presentedState.sortPriority != rhs.presentedState.sortPriority {
+                    return lhs.presentedState.sortPriority < rhs.presentedState.sortPriority
+                }
+                return (lhs.session.lastActivity ?? .distantPast) > (rhs.session.lastActivity ?? .distantPast)
+            }
+            .prefix(20)
+            .map { item in
+                PerchWidgetSnapshot.SessionSummary(
+                    projectName: item.projectName,
+                    state: PerchWidgetSnapshot.State(item.presentedState),
+                    detail: Self.detail(for: item),
+                    providerName: item.providerName,
+                    activityAt: item.session.waitingSince ?? item.session.lastActivity,
+                    focusURL: item.session.nativeSurface.flatMap { handle in
+                        guard case let .url(url) = handle else { return nil }
+                        return url
+                    }
+                )
+            }
+
         return PerchWidgetSnapshot(
             generatedAt: generatedAt,
             dominantState: PerchWidgetSnapshot.State(presentation.dominantState),
@@ -82,8 +104,18 @@ final class WidgetSnapshotPublisher {
             workingCount: presentation.workingCount,
             restingCount: presentation.restingCount,
             uncertainCount: presentation.uncertainCount,
-            waitingHandoffs: waiting
+            waitingHandoffs: waiting,
+            sessions: Array(summaries)
         )
+    }
+
+    private static func detail(for item: SessionPresentation) -> String {
+        switch item.presentedState {
+        case .waiting: return item.waitingAction?.rawValue ?? "Attention required"
+        case .working: return "Working"
+        case .idle, .done: return "Resting"
+        case .unknown: return "State uncertain"
+        }
     }
 }
 

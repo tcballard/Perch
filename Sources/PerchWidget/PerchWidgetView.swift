@@ -151,34 +151,31 @@ struct PerchWidgetView: View {
     }
 
     private func extraLarge(_ snapshot: PerchWidgetSnapshot) -> some View {
-        HStack(spacing: 24) {
-            VStack(alignment: .leading, spacing: 16) {
+        HStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 14) {
                 HStack(alignment: .firstTextBaseline) {
                     header(snapshot.dominantState)
                     Spacer()
                     freshness(snapshot.generatedAt)
                 }
 
-                Spacer(minLength: 0)
-
-                Image(systemName: snapshot.dominantState == .uncertain ? "bird" : "bird.fill")
-                    .font(.system(size: 42, weight: .medium))
-                    .foregroundStyle(color(snapshot.dominantState))
-                    .accessibilityHidden(true)
-
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(headline(snapshot))
-                        .font(.title.weight(.semibold))
-                        .foregroundStyle(color(snapshot.dominantState))
-                    Text(summary(snapshot))
-                        .font(.subheadline)
+                    Text("Sessions")
+                        .font(.title3.weight(.semibold))
+                    Text("Filter observed activity")
+                        .font(.caption)
                         .foregroundStyle(.secondary)
-                        .lineLimit(2)
+                }
+
+                VStack(spacing: 6) {
+                    filterRow(.all, label: "All sessions", count: snapshot.sessions.count, symbol: "tray.full", state: nil)
+                    filterRow(.waiting, label: "Waiting", count: snapshot.waitingCount, symbol: "bird.fill", state: .waiting)
+                    filterRow(.working, label: "Working", count: snapshot.workingCount, symbol: "bird.fill", state: .working)
+                    filterRow(.resting, label: "Resting", count: snapshot.restingCount, symbol: "bird", state: .resting)
+                    filterRow(.uncertain, label: "Uncertain", count: snapshot.uncertainCount, symbol: "bird", state: .uncertain)
                 }
 
                 Spacer(minLength: 0)
-
-                stateRail(snapshot)
 
                 HStack(spacing: 5) {
                     Image(systemName: "lock")
@@ -188,42 +185,42 @@ struct PerchWidgetView: View {
                 .foregroundStyle(.tertiary)
                 .accessibilityElement(children: .combine)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.trailing, 22)
+            .frame(width: 250, alignment: .leading)
 
             Divider()
 
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .firstTextBaseline) {
-                    Text("Attention")
+                    Text(filterTitle(entry.selectedFilter))
                         .font(.title3.weight(.semibold))
-                    if snapshot.waitingCount > 0 {
-                        Text("\(snapshot.waitingCount)")
+                    Text("\(filteredSessions(snapshot).count)")
                             .font(.caption.weight(.semibold).monospacedDigit())
-                            .foregroundStyle(.orange)
-                    }
+                            .foregroundStyle(filterColor(entry.selectedFilter))
                     Spacer()
-                    Text("Waiting handoffs")
+                    Text("Observed sessions")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
 
                 Divider()
 
-                if snapshot.waitingHandoffs.isEmpty {
-                    largeEmptyState(snapshot)
+                let sessions = filteredSessions(snapshot)
+                if sessions.isEmpty {
+                    filteredEmptyState(entry.selectedFilter)
                 } else {
                     VStack(spacing: 0) {
-                        ForEach(Array(snapshot.waitingHandoffs.prefix(3).enumerated()), id: \.offset) { index, handoff in
-                            largeHandoffRow(handoff)
-                            if index < min(snapshot.waitingHandoffs.count, 3) - 1 {
+                        ForEach(Array(sessions.prefix(8).enumerated()), id: \.offset) { index, session in
+                            sessionRow(session)
+                            if index < min(sessions.count, 8) - 1 {
                                 Divider()
-                                    .padding(.leading, 25)
+                                    .padding(.leading, 34)
                             }
                         }
                     }
 
-                    if snapshot.waitingCount > snapshot.waitingHandoffs.count {
-                        Text("+ \(snapshot.waitingCount - snapshot.waitingHandoffs.count) more waiting")
+                    if sessions.count > 8 {
+                        Text("+ \(sessions.count - 8) more sessions")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -234,15 +231,126 @@ struct PerchWidgetView: View {
                 HStack {
                     Text("No session content stored")
                     Spacer()
-                    if snapshot.waitingCount == 0 {
-                        Text("All caught up")
-                    }
+                    Text(headline(snapshot))
                 }
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
             }
+            .padding(.leading, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    private func filterRow(
+        _ filter: PerchWidgetFilter,
+        label: String,
+        count: Int,
+        symbol: String,
+        state: PerchWidgetSnapshot.State?
+    ) -> some View {
+        Button(intent: SetPerchWidgetFilterIntent(filter: filter)) {
+            HStack(spacing: 10) {
+                Image(systemName: symbol)
+                    .frame(width: 18)
+                    .foregroundStyle(state.map(color) ?? .secondary)
+                Text(label)
+                    .font(.subheadline.weight(entry.selectedFilter == filter ? .semibold : .regular))
+                Spacer()
+                Text("\(count)")
+                    .font(.subheadline.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(entry.selectedFilter == filter ? Color.primary.opacity(0.08) : .clear, in: RoundedRectangle(cornerRadius: 8))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Show \(label.lowercased()), \(count)")
+        .accessibilityAddTraits(entry.selectedFilter == filter ? .isSelected : [])
+    }
+
+    private func filteredSessions(_ snapshot: PerchWidgetSnapshot) -> [PerchWidgetSnapshot.SessionSummary] {
+        guard entry.selectedFilter != .all else { return snapshot.sessions }
+        return snapshot.sessions.filter { $0.state.rawValue == entry.selectedFilter.rawValue }
+    }
+
+    private func filterTitle(_ filter: PerchWidgetFilter) -> String {
+        switch filter {
+        case .all: "All sessions"
+        case .waiting: "Waiting"
+        case .working: "Working"
+        case .resting: "Resting"
+        case .uncertain: "Uncertain"
+        }
+    }
+
+    private func filterColor(_ filter: PerchWidgetFilter) -> Color {
+        switch filter {
+        case .waiting: color(.waiting)
+        case .working: color(.working)
+        case .resting, .uncertain, .all: .secondary
+        }
+    }
+
+    @ViewBuilder
+    private func filteredEmptyState(_ filter: PerchWidgetFilter) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: filter == .all ? "tray" : "line.3.horizontal.decrease.circle")
+                .font(.title2)
+                .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(filter == .all ? "No sessions observed" : "No matching sessions")
+                    .font(.headline)
+                Text(filter == .all ? "Perch will show local activity here." : "Choose another state to change the filter.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.top, 8)
+        Spacer(minLength: 0)
+    }
+
+    private func sessionRow(_ session: PerchWidgetSnapshot.SessionSummary) -> some View {
+        HStack(spacing: 11) {
+            Image(systemName: session.state == .uncertain ? "bird" : "bird.fill")
+                .font(.body.weight(.medium))
+                .foregroundStyle(color(session.state))
+                .frame(width: 22)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(session.projectName)
+                    .font(.headline)
+                    .lineLimit(1)
+                Text("\(session.detail) · \(session.providerName)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            Spacer(minLength: 8)
+
+            if let date = session.activityAt {
+                Text(date, style: session.state == .waiting ? .timer : .relative)
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(
+                        session.state == .waiting
+                            ? color(.waiting)
+                            : Color.secondary.opacity(0.65)
+                    )
+            }
+
+            if let url = session.focusURL {
+                Link(destination: url) {
+                    Image(systemName: "arrow.up.forward.app")
+                        .frame(width: 28, height: 28)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Focus \(session.projectName)")
+            }
+        }
+        .padding(.vertical, 9)
+        .accessibilityElement(children: .combine)
     }
 
     private func stateRail(_ snapshot: PerchWidgetSnapshot) -> some View {

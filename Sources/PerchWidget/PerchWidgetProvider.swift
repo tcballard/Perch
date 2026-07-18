@@ -5,13 +5,14 @@ struct PerchWidgetEntry: TimelineEntry {
     let date: Date
     let snapshot: PerchWidgetSnapshot?
     let isStale: Bool
+    let selectedFilter: PerchWidgetFilter
 }
 
 struct PerchWidgetProvider: TimelineProvider {
     private static let staleInterval: TimeInterval = 15 * 60
 
     func placeholder(in context: Context) -> PerchWidgetEntry {
-        PerchWidgetEntry(date: .now, snapshot: .preview, isStale: false)
+        PerchWidgetEntry(date: .now, snapshot: .preview, isStale: false, selectedFilter: .all)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (PerchWidgetEntry) -> Void) {
@@ -32,7 +33,12 @@ struct PerchWidgetProvider: TimelineProvider {
     private func entry(at date: Date) -> PerchWidgetEntry {
         let snapshot = PerchWidgetSnapshotStorage.load()
         let stale = snapshot.map { date.timeIntervalSince($0.generatedAt) > Self.staleInterval } ?? true
-        return PerchWidgetEntry(date: date, snapshot: snapshot, isStale: stale)
+        return PerchWidgetEntry(
+            date: date,
+            snapshot: snapshot,
+            isStale: stale,
+            selectedFilter: PerchWidgetFilterPreference.current
+        )
     }
 }
 
@@ -60,6 +66,13 @@ private extension PerchWidgetSnapshot {
                     providerName: "Claude",
                     focusURL: nil
                 )
+            ],
+            sessions: [
+                SessionSummary(projectName: "checkout-flow", state: .waiting, detail: "Permission required", providerName: "Codex", activityAt: .now.addingTimeInterval(-420), focusURL: URL(string: "codex://threads/preview")),
+                SessionSummary(projectName: "refactor-auth", state: .waiting, detail: "Input required", providerName: "Claude", activityAt: .now.addingTimeInterval(-180), focusURL: nil),
+                SessionSummary(projectName: "Perch", state: .working, detail: "Working", providerName: "Codex", activityAt: .now, focusURL: URL(string: "codex://threads/perch")),
+                SessionSummary(projectName: "docs", state: .resting, detail: "Resting", providerName: "Claude", activityAt: .now.addingTimeInterval(-900), focusURL: nil),
+                SessionSummary(projectName: "experiment", state: .uncertain, detail: "State uncertain", providerName: "Codex", activityAt: nil, focusURL: nil)
             ]
         )
     }

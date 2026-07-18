@@ -21,6 +21,7 @@ final class WidgetSnapshotTests: XCTestCase {
 
         XCTAssertEqual(snapshot.waitingCount, 5)
         XCTAssertEqual(snapshot.waitingHandoffs.count, 3)
+        XCTAssertEqual(snapshot.sessions.count, 5)
     }
 
     func testSnapshotContainsOnlySanitizedPresentationData() throws {
@@ -46,6 +47,9 @@ final class WidgetSnapshotTests: XCTestCase {
         XCTAssertEqual(snapshot.waitingCount, 1)
         XCTAssertEqual(snapshot.waitingHandoffs.first?.projectName, "Perch")
         XCTAssertEqual(snapshot.waitingHandoffs.first?.action, "Permission required")
+        XCTAssertEqual(snapshot.sessions.first?.projectName, "Perch")
+        XCTAssertEqual(snapshot.sessions.first?.state, .waiting)
+        XCTAssertEqual(snapshot.sessions.first?.detail, "Permission required")
         XCTAssertFalse(json.contains("/Users/tom/Secret"))
         XCTAssertFalse(json.contains("private-thread-id"))
     }
@@ -77,7 +81,23 @@ final class WidgetSnapshotTests: XCTestCase {
         XCTAssertEqual(snapshot.waitingCount, 0)
         XCTAssertEqual(snapshot.uncertainCount, 2)
         XCTAssertTrue(snapshot.waitingHandoffs.isEmpty)
+        XCTAssertEqual(snapshot.sessions.map(\.state), [.uncertain, .uncertain])
         XCTAssertEqual(snapshot.dominantState, .uncertain)
+    }
+
+    func testSnapshotPublishesSanitizedSummariesForEveryPresentedState() {
+        let now = Date(timeIntervalSince1970: 4_000)
+        let sessions = [
+            AgentSession(provider: .codex, runtime: .codexDesktop, id: "working", label: "Builder", state: .working, lastActivity: now, confidence: .observed),
+            AgentSession(provider: .claude, runtime: .claudeDesktop, id: "resting", label: "Reviewer", state: .idle, lastActivity: now.addingTimeInterval(-10), confidence: .observed),
+            AgentSession(provider: .codex, runtime: .codexDesktop, id: "unknown", label: "Experiment", state: .unknown, lastActivity: now.addingTimeInterval(-20), confidence: .unknown)
+        ]
+
+        let snapshot = WidgetSnapshotPublisher.makeSnapshot(sessions: sessions, generatedAt: now)
+
+        XCTAssertEqual(snapshot.sessions.map(\.projectName), ["Builder", "Reviewer", "Experiment"])
+        XCTAssertEqual(snapshot.sessions.map(\.state), [.working, .resting, .uncertain])
+        XCTAssertEqual(snapshot.sessions.map(\.detail), ["Working", "Resting", "State uncertain"])
     }
 
     func testPublisherReloadsOnlyForSemanticChangesAndClearsWaiting() throws {

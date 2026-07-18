@@ -16,6 +16,15 @@ struct PerchWidgetSnapshot: Codable, Equatable, Sendable {
         let focusURL: URL?
     }
 
+    struct SessionSummary: Codable, Equatable, Sendable {
+        let projectName: String
+        let state: State
+        let detail: String
+        let providerName: String
+        let activityAt: Date?
+        let focusURL: URL?
+    }
+
     struct Content: Equatable, Sendable {
         let dominantState: State
         let waitingCount: Int
@@ -23,9 +32,10 @@ struct PerchWidgetSnapshot: Codable, Equatable, Sendable {
         let restingCount: Int
         let uncertainCount: Int
         let waitingHandoffs: [WaitingHandoff]
+        let sessions: [SessionSummary]
     }
 
-    static let currentSchemaVersion = 1
+    static let currentSchemaVersion = 2
 
     let schemaVersion: Int
     let generatedAt: Date
@@ -35,6 +45,7 @@ struct PerchWidgetSnapshot: Codable, Equatable, Sendable {
     let restingCount: Int
     let uncertainCount: Int
     let waitingHandoffs: [WaitingHandoff]
+    let sessions: [SessionSummary]
 
     var content: Content {
         Content(
@@ -43,7 +54,8 @@ struct PerchWidgetSnapshot: Codable, Equatable, Sendable {
             workingCount: workingCount,
             restingCount: restingCount,
             uncertainCount: uncertainCount,
-            waitingHandoffs: waitingHandoffs
+            waitingHandoffs: waitingHandoffs,
+            sessions: sessions
         )
     }
 
@@ -54,7 +66,8 @@ struct PerchWidgetSnapshot: Codable, Equatable, Sendable {
         workingCount: Int,
         restingCount: Int,
         uncertainCount: Int,
-        waitingHandoffs: [WaitingHandoff]
+        waitingHandoffs: [WaitingHandoff],
+        sessions: [SessionSummary] = []
     ) {
         schemaVersion = Self.currentSchemaVersion
         self.generatedAt = generatedAt
@@ -64,6 +77,7 @@ struct PerchWidgetSnapshot: Codable, Equatable, Sendable {
         self.restingCount = restingCount
         self.uncertainCount = uncertainCount
         self.waitingHandoffs = waitingHandoffs
+        self.sessions = sessions
     }
 }
 
