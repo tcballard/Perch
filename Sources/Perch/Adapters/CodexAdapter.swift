@@ -2,14 +2,15 @@ import AppKit
 import Foundation
 
 actor CodexAdapter: AgentProviderAdapter {
-    nonisolated let id = ProviderID.codex
+    nonisolated let source = ObservationSourceDescriptor.codexDesktopLocalState
     nonisolated let isEnabled: Bool
 
     private let homeDirectory: URL
     private let codexExecutable: URL
     private let sqliteExecutable = URL(fileURLWithPath: "/usr/bin/sqlite3")
-    private let validatedVersions: Set<String> = ["0.144.0-alpha.4", "0.144.2"]
+    private let validatedVersions: Set<String> = ["0.144.0-alpha.4", "0.144.2", "0.145.0-alpha.18"]
     private var cachedVersion: (signature: String, value: String)?
+    private var sequence: UInt64 = 0
 
     init(
         isEnabled: Bool = true,
@@ -21,32 +22,59 @@ actor CodexAdapter: AgentProviderAdapter {
         self.codexExecutable = codexExecutable
     }
 
-    func listSessions() async throws -> [AgentSession] {
+    func observations(observedAt: Date) async throws -> EvidenceBatch {
         let installedVersion = try await installedVersion()
         let rows = try await threadRows()
         let versionMatches = validatedVersions.contains(installedVersion)
+        sequence += 1
 
-        return rows.map { row in
-                let parsed = versionMatches
-                    ? Self.parseRollout(at: row.rolloutURL)
-                    : .unknown
-                return AgentSession(
-                    provider: id,
-                    id: row.id,
+        let snapshots = rows.map { row in
+            let parsed = versionMatches
+                ? Self.parseRollout(at: row.rolloutURL)
+                : .unknown
+            let key = SessionKey(
+                provider: source.provider,
+                runtime: source.runtime,
+                value: row.id
+            )
+            let eventAt = parsed.transitionAt ?? row.updatedAt
+            let claim: LegacySnapshotLifecycleClaim
+            switch (parsed.state, parsed.attentionReason, parsed.handoffToken) {
+            case let (.waiting, reason?, token?) where parsed.transitionAt != nil:
+                claim = .handoffOpened(token: token, reason: reason, at: eventAt)
+            case (.working, _, _) where parsed.transitionAt != nil:
+                claim = .workBegan(at: eventAt)
+            case (.idle, _, _) where parsed.transitionAt != nil:
+                claim = .workEnded(at: eventAt)
+            case (.done, _, _) where parsed.transitionAt != nil:
+                claim = .sessionEnded(at: eventAt)
+            default:
+                claim = .presenceOnly
+            }
+            return ObservedSessionSnapshot(
+                session: ObservedSession(
+                    key: key,
                     label: row.cwd.lastPathComponent,
                     workingDirectory: row.cwd,
                     nativeSurface: Self.focusURL(for: row.id).map(NativeSurfaceHandle.url),
-                    state: parsed.state,
-                    waitingOn: parsed.waitingOn,
                     lastActivity: row.updatedAt,
-                    confidence: versionMatches ? parsed.confidence : .unknown,
                     validatedProviderVersion: versionMatches ? installedVersion : nil
-                )
+                ),
+                claim: claim,
+                expiresAt: observedAt.addingTimeInterval(5)
+            )
         }
+        return EvidenceBatch.legacySnapshot(
+            source: source,
+            sequence: sequence,
+            observedAt: observedAt,
+            sessions: snapshots
+        )
     }
 
     func focus(_ session: AgentSession) async throws {
-        guard session.provider == id,
+        guard session.provider == source.provider,
+              session.runtime == source.runtime,
               case let .url(url)? = session.nativeSurface,
               url.scheme == "codex",
               url.host == "threads",
@@ -120,72 +148,145 @@ actor CodexAdapter: AgentProviderAdapter {
         guard let data = try? handle.readToEnd() else { return .unknown }
 
         var taskActive = false
-        var outstandingInputs = Set<String>()
-        var outstandingExecutions = Set<String>()
-        var outstandingApprovals = Set<String>()
+        var outstandingInputs: [String: PendingTransition] = [:]
+        var outstandingExecutions: [String: PendingTransition] = [:]
+        var outstandingApprovals: [String: PendingTransition] = [:]
         var approvalsReviewer: String?
-
+        var lastTransitionAt: Date?
+        var invalid = false
         for line in data.split(separator: 0x0A) {
             guard let envelope = try? JSONSerialization.jsonObject(with: Data(line)) as? [String: Any],
                   let payload = envelope["payload"] as? [String: Any] else { continue }
             let type = payload["type"] as? String
+            let eventAt = (envelope["timestamp"] as? String).flatMap { timestamp in
+                Self.parseTimestamp(timestamp)
+            }
             if envelope["type"] as? String == "turn_context" {
                 approvalsReviewer = payload["approvals_reviewer"] as? String
             }
             switch type {
-            case "task_started": taskActive = true
-            case "task_complete": taskActive = false
+            case "task_started":
+                taskActive = true
+                lastTransitionAt = eventAt ?? lastTransitionAt
+                invalid = false
+            case "task_complete":
+                taskActive = false
+                outstandingInputs.removeAll()
+                outstandingExecutions.removeAll()
+                outstandingApprovals.removeAll()
+                lastTransitionAt = eventAt ?? lastTransitionAt
+                invalid = false
             case "turn_aborted":
                 taskActive = false
                 outstandingInputs.removeAll()
                 outstandingExecutions.removeAll()
                 outstandingApprovals.removeAll()
+                lastTransitionAt = eventAt ?? lastTransitionAt
+                invalid = false
             case "function_call" where payload["name"] as? String == "request_user_input":
-                if let callID = payload["call_id"] as? String { outstandingInputs.insert(callID) }
+                if let callID = payload["call_id"] as? String {
+                    outstandingInputs[callID] = PendingTransition(at: eventAt)
+                }
             case "function_call_output":
-                if let callID = payload["call_id"] as? String { outstandingInputs.remove(callID) }
+                if let callID = payload["call_id"] as? String {
+                    if outstandingInputs.removeValue(forKey: callID) != nil {
+                        lastTransitionAt = eventAt ?? lastTransitionAt
+                    } else if !outstandingInputs.isEmpty ||
+                                !outstandingExecutions.isEmpty ||
+                                !outstandingApprovals.isEmpty {
+                        invalid = true
+                    }
+                }
             case "custom_tool_call" where payload["name"] as? String == "exec":
                 if let callID = payload["call_id"] as? String {
-                    outstandingExecutions.insert(callID)
+                    let transition = PendingTransition(at: eventAt)
+                    outstandingExecutions[callID] = transition
                     if let input = payload["input"] as? String,
                        let inputData = input.data(using: .utf8),
                        let metadata = try? JSONSerialization.jsonObject(with: inputData) as? [String: Any],
                        metadata["sandbox_permissions"] as? String == "require_escalated" {
-                        outstandingApprovals.insert(callID)
+                        outstandingApprovals[callID] = transition
                     }
                 }
             case "custom_tool_call_output":
                 if let callID = payload["call_id"] as? String {
-                    outstandingExecutions.remove(callID)
-                    outstandingApprovals.remove(callID)
+                    let removedExecution = outstandingExecutions.removeValue(forKey: callID)
+                    let removedApproval = outstandingApprovals.removeValue(forKey: callID)
+                    if removedExecution != nil || removedApproval != nil {
+                        lastTransitionAt = eventAt ?? lastTransitionAt
+                    } else if !outstandingInputs.isEmpty ||
+                                !outstandingExecutions.isEmpty ||
+                                !outstandingApprovals.isEmpty {
+                        invalid = true
+                    }
                 }
             default: break
             }
         }
 
-        if !outstandingApprovals.isEmpty ||
-            (!outstandingExecutions.isEmpty && approvalsReviewer == "user") {
-            return ParsedState(state: .waiting, waitingOn: "permission required", confidence: .observed)
+        guard !invalid else { return .unknown }
+        let permissionIDs = approvalsReviewer == "user"
+            ? Set(outstandingExecutions.keys).union(outstandingApprovals.keys)
+            : Set(outstandingApprovals.keys)
+        let permissionHandoffs: [(String, AttentionReason, PendingTransition?)] = permissionIDs.map { id in
+            (id, AttentionReason.permission, outstandingApprovals[id] ?? outstandingExecutions[id])
         }
-        if !outstandingInputs.isEmpty {
-            return ParsedState(state: .waiting, waitingOn: "input required", confidence: .observed)
+        let inputHandoffs: [(String, AttentionReason, PendingTransition?)] = outstandingInputs.map { entry in
+            (entry.key, AttentionReason.input, Optional(entry.value))
         }
-        if taskActive {
-            return ParsedState(state: .working, waitingOn: nil, confidence: .observed)
+        let handoffs = permissionHandoffs + inputHandoffs
+        guard handoffs.count <= 1 else { return .unknown }
+        if let (id, reason, transition) = handoffs.first {
+            guard let transition, let openedAt = transition.at else { return .unknown }
+            return ParsedState(
+                state: .waiting,
+                attentionReason: reason,
+                handoffToken: HandoffToken(rawValue: "\(reason.rawValue):\(id)"),
+                transitionAt: openedAt
+            )
         }
-        return ParsedState(state: .idle, waitingOn: nil, confidence: .observed)
+        if taskActive, let lastTransitionAt {
+            return ParsedState(
+                state: .working,
+                attentionReason: nil,
+                handoffToken: nil,
+                transitionAt: lastTransitionAt
+            )
+        }
+        guard let lastTransitionAt else { return .unknown }
+        return ParsedState(
+            state: .idle,
+            attentionReason: nil,
+            handoffToken: nil,
+            transitionAt: lastTransitionAt
+        )
+    }
+
+    private static func parseTimestamp(_ value: String) -> Date? {
+        let fractional = ISO8601DateFormatter()
+        fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return fractional.date(from: value) ?? ISO8601DateFormatter().date(from: value)
     }
 }
 
 extension CodexAdapter {
     struct ParsedState: Equatable {
         let state: AgentState
-        let waitingOn: String?
-        let confidence: StateConfidence
+        let attentionReason: AttentionReason?
+        let handoffToken: HandoffToken?
+        let transitionAt: Date?
 
-        static let unknown = ParsedState(state: .unknown, waitingOn: nil, confidence: .unknown)
+        var waitingOn: String? { attentionReason?.displayText }
+
+        static let unknown = ParsedState(
+            state: .unknown,
+            attentionReason: nil,
+            handoffToken: nil,
+            transitionAt: nil
+        )
     }
 
+    private struct PendingTransition { let at: Date? }
     private struct ThreadRow {
         let id: String
         let cwd: URL

@@ -8,7 +8,8 @@ final class CodexAdapterTests: XCTestCase {
             event("function_call", ["name": "request_user_input", "call_id": "input-1"]),
         ])
         XCTAssertEqual(CodexAdapter.parseRollout(at: waiting).state, .waiting)
-        XCTAssertEqual(CodexAdapter.parseRollout(at: waiting).waitingOn, "input required")
+        XCTAssertEqual(CodexAdapter.parseRollout(at: waiting).attentionReason, .input)
+        XCTAssertEqual(CodexAdapter.parseRollout(at: waiting).handoffToken?.rawValue, "input:input-1")
 
         let aborted = try fixture([
             event("task_started"),
@@ -16,6 +17,115 @@ final class CodexAdapterTests: XCTestCase {
             event("turn_aborted"),
         ])
         XCTAssertEqual(CodexAdapter.parseRollout(at: aborted).state, .idle)
+        XCTAssertNil(CodexAdapter.parseRollout(at: aborted).attentionReason)
+    }
+
+    func testStructuredPermissionWaitAndMatchingOutput() throws {
+        let inputData = try JSONSerialization.data(
+            withJSONObject: ["sandbox_permissions": "require_escalated"]
+        )
+        let input = String(decoding: inputData, as: UTF8.self)
+        let waiting = try fixture([
+            event("task_started"),
+            event("custom_tool_call", ["name": "exec", "call_id": "exec-1", "input": input]),
+        ])
+        let parsed = CodexAdapter.parseRollout(at: waiting)
+        XCTAssertEqual(parsed.state, .waiting)
+        XCTAssertEqual(parsed.attentionReason, .permission)
+        XCTAssertEqual(parsed.handoffToken?.rawValue, "permission:exec-1")
+
+        let resumed = try fixture([
+            event("task_started"),
+            event("custom_tool_call", ["name": "exec", "call_id": "exec-1", "input": input]),
+            event("custom_tool_call_output", ["call_id": "exec-1"]),
+        ])
+        XCTAssertEqual(CodexAdapter.parseRollout(at: resumed).state, .working)
+        XCTAssertNil(CodexAdapter.parseRollout(at: resumed).attentionReason)
+    }
+
+    func testCurrentResponseItemPermissionWrapperAndMatchingOutput() throws {
+        let inputData = try JSONSerialization.data(
+            withJSONObject: ["sandbox_permissions": "require_escalated"]
+        )
+        let input = String(decoding: inputData, as: UTF8.self)
+        let turnContext: [String: Any] = [
+            "timestamp": "2026-07-18T00:00:00Z",
+            "type": "turn_context",
+            "payload": ["approvals_reviewer": "auto_review"],
+        ]
+        let permissionCall: [String: Any] = [
+            "timestamp": "2026-07-18T00:00:01Z",
+            "type": "response_item",
+            "payload": [
+                "type": "custom_tool_call",
+                "name": "exec",
+                "call_id": "exec-current",
+                "input": input,
+            ],
+        ]
+        let permissionOutput: [String: Any] = [
+            "timestamp": "2026-07-18T00:00:02Z",
+            "type": "response_item",
+            "payload": [
+                "type": "custom_tool_call_output",
+                "call_id": "exec-current",
+            ],
+        ]
+
+        let waiting = try fixture([turnContext, event("task_started"), permissionCall])
+        let parsed = CodexAdapter.parseRollout(at: waiting)
+        XCTAssertEqual(parsed.state, .waiting)
+        XCTAssertEqual(parsed.attentionReason, .permission)
+        XCTAssertEqual(parsed.handoffToken?.rawValue, "permission:exec-current")
+
+        let resumed = try fixture([turnContext, event("task_started"), permissionCall, permissionOutput])
+        XCTAssertEqual(CodexAdapter.parseRollout(at: resumed).state, .working)
+        XCTAssertNil(CodexAdapter.parseRollout(at: resumed).attentionReason)
+    }
+
+    func testTaskCompletionClearsOutstandingHandoff() throws {
+        let completed = try fixture([
+            event("task_started"),
+            event("function_call", ["name": "request_user_input", "call_id": "input-1"]),
+            event("task_complete"),
+        ])
+        XCTAssertEqual(CodexAdapter.parseRollout(at: completed).state, .idle)
+        XCTAssertNil(CodexAdapter.parseRollout(at: completed).attentionReason)
+    }
+
+    func testEmptyAndTimestampLessRolloutsRemainUnknown() throws {
+        let empty = try fixture([])
+        XCTAssertEqual(CodexAdapter.parseRollout(at: empty).state, .unknown)
+
+        let timestampLess = try fixture([
+            ["type": "event_msg", "payload": ["type": "task_started"]],
+        ])
+        XCTAssertEqual(CodexAdapter.parseRollout(at: timestampLess).state, .unknown)
+    }
+
+    func testMultipleOutstandingHandoffsRemainUnknown() throws {
+        let ambiguous = try fixture([
+            event("task_started"),
+            event("function_call", ["name": "request_user_input", "call_id": "input-1"]),
+            event("function_call", ["name": "request_user_input", "call_id": "input-2"]),
+        ])
+        XCTAssertEqual(CodexAdapter.parseRollout(at: ambiguous).state, .unknown)
+        XCTAssertNil(CodexAdapter.parseRollout(at: ambiguous).attentionReason)
+    }
+
+    func testUncorrelatedOutputsRemainUnknown() throws {
+        let orphan = try fixture([
+            event("function_call_output", ["call_id": "missing"]),
+        ])
+        XCTAssertEqual(CodexAdapter.parseRollout(at: orphan).state, .unknown)
+
+        let conflicting = try fixture([
+            event("task_started"),
+            event("function_call", ["name": "request_user_input", "call_id": "input-1"]),
+            event("function_call_output", ["call_id": "different"]),
+        ])
+        XCTAssertEqual(CodexAdapter.parseRollout(at: conflicting).state, .unknown)
+        XCTAssertNil(CodexAdapter.parseRollout(at: conflicting).attentionReason)
     }
 
     func testOrdinaryPromptLikeTextDoesNotCreateWait() throws {

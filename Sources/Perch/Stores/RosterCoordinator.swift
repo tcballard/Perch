@@ -11,13 +11,15 @@ final class RosterCoordinator {
     private let adapters: [any AgentProviderAdapter]
     private let pollingInterval: Duration
     private let staleRetention: Duration
-    private var pollingTasks: [ProviderID: Task<Void, Never>] = [:]
-    private var waitingStartedAt: [AgentSession.ID: Date] = [:]
-    private var snapshots: [ProviderID: [AgentSession]] = [:]
-    private var lastSuccess: [ProviderID: ContinuousClock.Instant] = [:]
+    private var pollingTasks: [SourceID: Task<Void, Never>] = [:]
+    private var projectionTask: Task<Void, Never>?
+    private var lastSuccess: [SourceID: ContinuousClock.Instant] = [:]
+    private var reducer = AttentionReducer()
     private let logger = Logger(subsystem: "com.tcballard.perch", category: "Polling")
 
     init(adapters: [any AgentProviderAdapter], pollingInterval: Duration, staleRetention: Duration = .seconds(15)) {
+        let sourceIDs = adapters.map { $0.source.id }
+        precondition(Set(sourceIDs).count == sourceIDs.count, "Observation source IDs must be unique")
         self.adapters = adapters
         self.pollingInterval = pollingInterval
         self.staleRetention = staleRetention
@@ -28,18 +30,38 @@ final class RosterCoordinator {
     }
 
     func start() {
-        guard pollingTasks.isEmpty else { return }
+        guard pollingTasks.isEmpty, projectionTask == nil else { return }
         for adapter in adapters where adapter.isEnabled {
-            pollingTasks[adapter.id] = Task { [weak self] in
-                guard let self else { return }
+            pollingTasks[adapter.source.id] = Task { [weak self] in
                 let clock = ContinuousClock()
                 var deadline = clock.now
                 while !Task.isCancelled {
-                    await refresh(adapter: adapter)
-                    deadline += pollingInterval
+                    let interval: Duration
+                    do {
+                        guard let coordinator = self else { return }
+                        interval = coordinator.pollingInterval
+                        await coordinator.refresh(adapter: adapter)
+                    }
+                    deadline += interval
                     if deadline < clock.now { deadline = clock.now }
                     try? await clock.sleep(until: deadline)
                 }
+            }
+        }
+        projectionTask = Task { [weak self] in
+            let clock = ContinuousClock()
+            var deadline = clock.now
+            while !Task.isCancelled {
+                let interval: Duration
+                do {
+                    guard let coordinator = self else { return }
+                    interval = coordinator.pollingInterval
+                }
+                deadline += interval
+                if deadline < clock.now { deadline = clock.now }
+                try? await clock.sleep(until: deadline)
+                guard !Task.isCancelled else { return }
+                self?.sweepHealthAndPublish(now: .now)
             }
         }
     }
@@ -47,67 +69,83 @@ final class RosterCoordinator {
     func stop() {
         pollingTasks.values.forEach { $0.cancel() }
         pollingTasks.removeAll()
+        projectionTask?.cancel()
+        projectionTask = nil
     }
 
-    func refresh(now: Date = .now) async {
+    func refresh(now fixedNow: Date? = nil) async {
         await withTaskGroup(of: Void.self) { group in
             for adapter in adapters where adapter.isEnabled {
-                group.addTask { await self.refresh(adapter: adapter, now: now) }
+                group.addTask { await self.refresh(adapter: adapter, fixedNow: fixedNow) }
             }
         }
     }
 
-    private func refresh(adapter: any AgentProviderAdapter, now: Date = .now) async {
+    private func refresh(adapter: any AgentProviderAdapter, fixedNow: Date? = nil) async {
         let clock = ContinuousClock()
         let started = clock.now
+        let observedAt = fixedNow ?? .now
         do {
-            let result = try await adapter.listSessions()
-            snapshots[adapter.id] = result
-            lastSuccess[adapter.id] = clock.now
-            publish(now: now)
+            let batch = try await adapter.observations(observedAt: observedAt)
+            let completedAt = fixedNow ?? .now
+            let completedInstant = clock.now
+            let result = try reducer.ingest(batch, from: adapter.source, receivedAt: completedAt)
+            if result == .accepted {
+                lastSuccess[adapter.source.id] = completedInstant
+            } else if result == .duplicate,
+                      let success = lastSuccess[adapter.source.id],
+                      success.duration(to: completedInstant) > staleRetention {
+                reducer.markSourceFailed(adapter.source.id)
+            }
+            publish(now: completedAt)
             #if DEBUG
-            let duration = started.duration(to: clock.now)
-            logger.info("provider=\(adapter.id.rawValue, privacy: .public) duration=\(String(describing: duration), privacy: .public) sessions=\(result.count)")
-            if let eventDate = result.filter({ $0.state == .waiting }).compactMap(\.lastActivity).max() {
-                let latency = max(0, now.timeIntervalSince(eventDate))
-                logger.info("provider=\(adapter.id.rawValue, privacy: .public) waiting_transition_latency_seconds=\(latency, privacy: .public)")
+            let duration = started.duration(to: completedInstant)
+            logger.info("source=\(adapter.source.id.rawValue, privacy: .public) duration=\(String(describing: duration), privacy: .public) sessions=\(batch.sessions.count)")
+            let handoffDates = batch.items.compactMap { item -> Date? in
+                if case .handoffOpened = item.kind { return item.eventAt }
+                return nil
+            }
+            if let eventDate = handoffDates.max() {
+                let latency = max(0, completedAt.timeIntervalSince(eventDate))
+                logger.info("source=\(adapter.source.id.rawValue, privacy: .public) waiting_transition_latency_seconds=\(latency, privacy: .public)")
             }
             #endif
         } catch {
-            if let success = lastSuccess[adapter.id], success.duration(to: clock.now) <= staleRetention {
-                snapshots[adapter.id] = snapshots[adapter.id, default: []].map { session in
-                    AgentSession(provider: session.provider, id: session.id.value, label: session.label, workingDirectory: session.workingDirectory, nativeSurface: session.nativeSurface, state: .unknown, lastActivity: session.lastActivity, confidence: .stale, validatedProviderVersion: session.validatedProviderVersion)
-                }
+            let completedAt = fixedNow ?? .now
+            let sourceID = adapter.source.id
+            if let success = lastSuccess[sourceID], success.duration(to: clock.now) <= staleRetention {
+                reducer.markSourceFailed(sourceID)
             } else {
-                snapshots[adapter.id] = []
+                reducer.removeSource(sourceID)
+                lastSuccess.removeValue(forKey: sourceID)
             }
-            publish(now: now)
+            publish(now: completedAt)
         }
     }
 
-    private func publish(now: Date) {
-        let combined = snapshots.values.flatMap { $0 }
-        let liveIDs = Set(combined.map(\.id))
-        waitingStartedAt = waitingStartedAt.filter { liveIDs.contains($0.key) }
-
-        sessions = combined.map { session in
-            var updated = session
-            if session.state == .waiting {
-                let startedAt = waitingStartedAt[session.id] ?? now
-                waitingStartedAt[session.id] = startedAt
-                updated.waitingSince = startedAt
-            } else {
-                waitingStartedAt.removeValue(forKey: session.id)
-                updated.waitingSince = nil
-            }
-            return updated
+    private func sweepHealthAndPublish(now: Date) {
+        let clock = ContinuousClock()
+        for adapter in adapters {
+            let sourceID = adapter.source.id
+            guard let success = lastSuccess[sourceID],
+                  success.duration(to: clock.now) > staleRetention else { continue }
+            reducer.removeSource(sourceID)
+            lastSuccess.removeValue(forKey: sourceID)
         }
-        .sorted(by: Self.sortSessions)
+        publish(now: now)
+    }
+
+    private func publish(now: Date) {
+        sessions = reducer.sessions(at: now).sorted(by: Self.sortSessions)
         lastRefresh = now
     }
 
     func focus(_ session: AgentSession) async throws {
-        guard let adapter = adapters.first(where: { $0.id == session.provider }) else {
+        guard let adapter = adapters.first(where: {
+            $0.source.provider == session.provider &&
+                $0.source.runtime == session.runtime &&
+                $0.source.capabilities.contains(.focus)
+        }) else {
             throw AdapterError.focusUnavailable
         }
         try await adapter.focus(session)
