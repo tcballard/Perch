@@ -7,23 +7,38 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		036A71892A281511E9EFBD54 /* DesktopPerchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968F23597392B22EA968B50E /* DesktopPerchView.swift */; };
 		0E19D9838A7E37E51DA441A5 /* SessionRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10713F66FF5BF6ABA059AD52 /* SessionRowView.swift */; };
+		15068DF40D93B3F3A9BAF0F7 /* PerchWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0B2FB0F4976F550C4DDA227C /* PerchWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		19011216E650F7E6E16BFC6B /* PerchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A273FDF288DDD755E9D97E33 /* PerchApp.swift */; };
 		1C1AC0A07F7CE0458A1930A1 /* CodexAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4646DF01B4BCB80CF3377F0 /* CodexAdapter.swift */; };
+		1CD90C20154E468EC4F2D3B2 /* ObservationEvidence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A569C981FB1E1AE3427BBA4 /* ObservationEvidence.swift */; };
+		2162088DE4E4A95114B72FF8 /* PerchWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2002E8D2F24B30C28D4409E7 /* PerchWidget.swift */; };
+		2D71BA70FF8D909A075CA05D /* AttentionReducerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8C0A0364D4F4894AEEE60AF /* AttentionReducerTests.swift */; };
 		427403EBF94C639595BA755E /* PerchStatusLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF8D65C1AC704CA6BA1CAB4 /* PerchStatusLabel.swift */; };
+		4EC725BDF33DD18AD91D4B54 /* AttentionPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FCDD698C0935192A342B7AD /* AttentionPresentationTests.swift */; };
+		57F820762FE5C028F82A9CD8 /* AttentionReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1C6B1A21C23C2E87AB5903 /* AttentionReducer.swift */; };
+		609662EC4EC745577B24AE1D /* WidgetSnapshotPublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B50B0AE8376C7EE64806672 /* WidgetSnapshotPublisher.swift */; };
 		64AFF88F81DE68864463B41F /* ClaudeDesktopAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F1612C6039F49C790F19BD0 /* ClaudeDesktopAdapter.swift */; };
+		67FD5F260D396E2F9F4EC382 /* PerchWidgetProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA33156C4C2643FE5388C78 /* PerchWidgetProvider.swift */; };
 		68E17614026C89626D6538C5 /* BoundedProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10BB1FC94FE53B78DA9B0CB /* BoundedProcess.swift */; };
+		6E55B519EEC201BBA2855960 /* PerchWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D85C083EC66CABD7E63B29A /* PerchWidgetView.swift */; };
+		726A411E3BD2D657EF6624E6 /* DesktopCompanionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43ED1C16A7750D0EE1F7277A /* DesktopCompanionController.swift */; };
+		77F046757011ADB510A61D8A /* PerchDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA672EFF9361DF61741C313F /* PerchDesign.swift */; };
 		7BE4033407669B521F0001CE /* CodexAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9127A6A62C9DCF5147F97155 /* CodexAdapterTests.swift */; };
+		8146F07B7908C5BD9EFDC32B /* WidgetSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85D6E1F8243545A67505BA00 /* WidgetSnapshotTests.swift */; };
 		9AB197F9AB16150FEF14B74B /* AgentProviderAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A2B159B6E1708271A0BF88 /* AgentProviderAdapter.swift */; };
 		A762C0742CEA185E82762658 /* PerchPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E93A429FB7198349BE6386 /* PerchPanelView.swift */; };
+		B2B254C0CD3FAE59802989D7 /* PerchWidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A26C7F36BBF58A990DA321 /* PerchWidgetSnapshot.swift */; };
 		B5659C912B6F18BA200F4457 /* ScriptedMockAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97A3C62DFCA00CAEE21FC9ED /* ScriptedMockAdapter.swift */; };
 		C0CDC3279BA818FEDA8948F7 /* RosterCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4FCA977EBEC9EB018088A2 /* RosterCoordinatorTests.swift */; };
 		C0DA1226920E2CBFEFEC0D23 /* AgentSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5931626E26B779B984EA15AE /* AgentSession.swift */; };
 		C21B5949B5ADCB67420FAF48 /* RosterCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55034E591AAB132D3A33C1CD /* RosterCoordinator.swift */; };
+		D2B32198D67E44BC7FF236FA /* PerchWidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A26C7F36BBF58A990DA321 /* PerchWidgetSnapshot.swift */; };
 		E0ED4F8D81196A1375453D04 /* ClaudeDesktopAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FC75E8850B9B07D5B7F92FD /* ClaudeDesktopAdapterTests.swift */; };
-		F10000000000000000000001 /* ObservationEvidence.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* ObservationEvidence.swift */; };
-		F10000000000000000000003 /* AttentionReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000004 /* AttentionReducer.swift */; };
-		F10000000000000000000005 /* AttentionReducerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000006 /* AttentionReducerTests.swift */; };
+		ED635508A57B3A9BCF2C596A /* WaitingHandoffRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D6ADECB4AFCE77EC7F42048 /* WaitingHandoffRowView.swift */; };
+		EFFF14F69D3714066D6F9050 /* AttentionOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06EE09AC88D3C02AA9317DDC /* AttentionOverviewView.swift */; };
+		FBCF8ED92DF21CAD67ED0432 /* AttentionPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9150D0CFFDF34175E4C0B117 /* AttentionPresentation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,29 +49,67 @@
 			remoteGlobalIDString = 45DC64F4606392864F14C513;
 			remoteInfo = Perch;
 		};
+		F813C6D0DAFBC1A7D8F350A7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 78904F42286EE3E52ED2700B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AC0F097AA6A5A8BEFAE68C3D;
+			remoteInfo = PerchWidget;
+		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		D96D4A17F3A4BA933E57C042 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				15068DF40D93B3F3A9BAF0F7 /* PerchWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		06EE09AC88D3C02AA9317DDC /* AttentionOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionOverviewView.swift; sourceTree = "<group>"; };
+		0B2FB0F4976F550C4DDA227C /* PerchWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PerchWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		10713F66FF5BF6ABA059AD52 /* SessionRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRowView.swift; sourceTree = "<group>"; };
+		2002E8D2F24B30C28D4409E7 /* PerchWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerchWidget.swift; sourceTree = "<group>"; };
+		2B50B0AE8376C7EE64806672 /* WidgetSnapshotPublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotPublisher.swift; sourceTree = "<group>"; };
+		2D6ADECB4AFCE77EC7F42048 /* WaitingHandoffRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitingHandoffRowView.swift; sourceTree = "<group>"; };
+		34A26C7F36BBF58A990DA321 /* PerchWidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerchWidgetSnapshot.swift; sourceTree = "<group>"; };
 		35E93A429FB7198349BE6386 /* PerchPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerchPanelView.swift; sourceTree = "<group>"; };
+		4362AC8F87D75CC1E95FE97B /* PerchWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PerchWidget.entitlements; sourceTree = "<group>"; };
+		43ED1C16A7750D0EE1F7277A /* DesktopCompanionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopCompanionController.swift; sourceTree = "<group>"; };
+		4A569C981FB1E1AE3427BBA4 /* ObservationEvidence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservationEvidence.swift; sourceTree = "<group>"; };
+		4D85C083EC66CABD7E63B29A /* PerchWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerchWidgetView.swift; sourceTree = "<group>"; };
 		55034E591AAB132D3A33C1CD /* RosterCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosterCoordinator.swift; sourceTree = "<group>"; };
 		5931626E26B779B984EA15AE /* AgentSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentSession.swift; sourceTree = "<group>"; };
 		5FC75E8850B9B07D5B7F92FD /* ClaudeDesktopAdapterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeDesktopAdapterTests.swift; sourceTree = "<group>"; };
+		75D7E48A3DA85F04E343C801 /* Perch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Perch.entitlements; sourceTree = "<group>"; };
+		7FCDD698C0935192A342B7AD /* AttentionPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionPresentationTests.swift; sourceTree = "<group>"; };
+		85D6E1F8243545A67505BA00 /* WidgetSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotTests.swift; sourceTree = "<group>"; };
 		9127A6A62C9DCF5147F97155 /* CodexAdapterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexAdapterTests.swift; sourceTree = "<group>"; };
+		9150D0CFFDF34175E4C0B117 /* AttentionPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionPresentation.swift; sourceTree = "<group>"; };
+		968F23597392B22EA968B50E /* DesktopPerchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopPerchView.swift; sourceTree = "<group>"; };
 		97A3C62DFCA00CAEE21FC9ED /* ScriptedMockAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptedMockAdapter.swift; sourceTree = "<group>"; };
+		9AA33156C4C2643FE5388C78 /* PerchWidgetProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerchWidgetProvider.swift; sourceTree = "<group>"; };
 		9F1612C6039F49C790F19BD0 /* ClaudeDesktopAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeDesktopAdapter.swift; sourceTree = "<group>"; };
 		A273FDF288DDD755E9D97E33 /* PerchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerchApp.swift; sourceTree = "<group>"; };
 		B9C11CB6F201B9372EA0827B /* PerchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PerchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD4FCA977EBEC9EB018088A2 /* RosterCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosterCoordinatorTests.swift; sourceTree = "<group>"; };
 		C10BB1FC94FE53B78DA9B0CB /* BoundedProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoundedProcess.swift; sourceTree = "<group>"; };
+		C8C0A0364D4F4894AEEE60AF /* AttentionReducerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionReducerTests.swift; sourceTree = "<group>"; };
+		CA672EFF9361DF61741C313F /* PerchDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerchDesign.swift; sourceTree = "<group>"; };
 		CCE7F4A19505D3B665B3A097 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D41D4D3B908363F711572982 /* Perch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Perch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4646DF01B4BCB80CF3377F0 /* CodexAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexAdapter.swift; sourceTree = "<group>"; };
 		E9A2B159B6E1708271A0BF88 /* AgentProviderAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentProviderAdapter.swift; sourceTree = "<group>"; };
 		ECF8D65C1AC704CA6BA1CAB4 /* PerchStatusLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerchStatusLabel.swift; sourceTree = "<group>"; };
-		F10000000000000000000002 /* ObservationEvidence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservationEvidence.swift; sourceTree = "<group>"; };
-		F10000000000000000000004 /* AttentionReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionReducer.swift; sourceTree = "<group>"; };
-		F10000000000000000000006 /* AttentionReducerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionReducerTests.swift; sourceTree = "<group>"; };
+		EF1C6B1A21C23C2E87AB5903 /* AttentionReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionReducer.swift; sourceTree = "<group>"; };
+		F781BE088845CCD2453DC13B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -64,9 +117,19 @@
 			isa = PBXGroup;
 			children = (
 				5931626E26B779B984EA15AE /* AgentSession.swift */,
-				F10000000000000000000002 /* ObservationEvidence.swift */,
+				9150D0CFFDF34175E4C0B117 /* AttentionPresentation.swift */,
+				4A569C981FB1E1AE3427BBA4 /* ObservationEvidence.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		4B9430EA749E54FCA6B60A3F /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				34A26C7F36BBF58A990DA321 /* PerchWidgetSnapshot.swift */,
+			);
+			name = Shared;
+			path = Sources/Shared;
 			sourceTree = "<group>";
 		};
 		5604ACE44E439FA92A920531 /* Products */ = {
@@ -74,6 +137,7 @@
 			children = (
 				D41D4D3B908363F711572982 /* Perch.app */,
 				B9C11CB6F201B9372EA0827B /* PerchTests.xctest */,
+				0B2FB0F4976F550C4DDA227C /* PerchWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -81,20 +145,44 @@
 		781A9BD3DFD468DC020677DE /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				06EE09AC88D3C02AA9317DDC /* AttentionOverviewView.swift */,
+				968F23597392B22EA968B50E /* DesktopPerchView.swift */,
 				35E93A429FB7198349BE6386 /* PerchPanelView.swift */,
 				ECF8D65C1AC704CA6BA1CAB4 /* PerchStatusLabel.swift */,
 				10713F66FF5BF6ABA059AD52 /* SessionRowView.swift */,
+				2D6ADECB4AFCE77EC7F42048 /* WaitingHandoffRowView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		8D74D7EF79BF9E5A3ACF7704 /* PerchWidget */ = {
+			isa = PBXGroup;
+			children = (
+				F781BE088845CCD2453DC13B /* Info.plist */,
+				4362AC8F87D75CC1E95FE97B /* PerchWidget.entitlements */,
+				2002E8D2F24B30C28D4409E7 /* PerchWidget.swift */,
+				9AA33156C4C2643FE5388C78 /* PerchWidgetProvider.swift */,
+				4D85C083EC66CABD7E63B29A /* PerchWidgetView.swift */,
+			);
+			name = PerchWidget;
+			path = Sources/PerchWidget;
 			sourceTree = "<group>";
 		};
 		94C026A23A9E4C197A1AF5E3 /* Stores */ = {
 			isa = PBXGroup;
 			children = (
-				F10000000000000000000004 /* AttentionReducer.swift */,
+				EF1C6B1A21C23C2E87AB5903 /* AttentionReducer.swift */,
 				55034E591AAB132D3A33C1CD /* RosterCoordinator.swift */,
 			);
 			path = Stores;
+			sourceTree = "<group>";
+		};
+		CC105910E2CDEC72AD4785E9 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				CA672EFF9361DF61741C313F /* PerchDesign.swift */,
+			);
+			path = Design;
 			sourceTree = "<group>";
 		};
 		D85CA7F938722E5036F36D7D /* Services */ = {
@@ -102,6 +190,7 @@
 			children = (
 				E9A2B159B6E1708271A0BF88 /* AgentProviderAdapter.swift */,
 				C10BB1FC94FE53B78DA9B0CB /* BoundedProcess.swift */,
+				2B50B0AE8376C7EE64806672 /* WidgetSnapshotPublisher.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -109,10 +198,12 @@
 		DEEF9E100A7290E48476D7A0 /* PerchTests */ = {
 			isa = PBXGroup;
 			children = (
-				F10000000000000000000006 /* AttentionReducerTests.swift */,
+				7FCDD698C0935192A342B7AD /* AttentionPresentationTests.swift */,
+				C8C0A0364D4F4894AEEE60AF /* AttentionReducerTests.swift */,
 				5FC75E8850B9B07D5B7F92FD /* ClaudeDesktopAdapterTests.swift */,
 				9127A6A62C9DCF5147F97155 /* CodexAdapterTests.swift */,
 				BD4FCA977EBEC9EB018088A2 /* RosterCoordinatorTests.swift */,
+				85D6E1F8243545A67505BA00 /* WidgetSnapshotTests.swift */,
 			);
 			name = PerchTests;
 			path = tests/PerchTests;
@@ -133,6 +224,8 @@
 			children = (
 				E32E753CE6364804D2CF49B3 /* Perch */,
 				DEEF9E100A7290E48476D7A0 /* PerchTests */,
+				8D74D7EF79BF9E5A3ACF7704 /* PerchWidget */,
+				4B9430EA749E54FCA6B60A3F /* Shared */,
 				5604ACE44E439FA92A920531 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -141,8 +234,10 @@
 			isa = PBXGroup;
 			children = (
 				CCE7F4A19505D3B665B3A097 /* Info.plist */,
+				75D7E48A3DA85F04E343C801 /* Perch.entitlements */,
 				E0ABF2C6A7F7ACD7B9B3B7EB /* Adapters */,
 				EEC16C9E619B957A56177B83 /* App */,
+				CC105910E2CDEC72AD4785E9 /* Design */,
 				1D31CC55A36EE36E48786280 /* Models */,
 				D85CA7F938722E5036F36D7D /* Services */,
 				94C026A23A9E4C197A1AF5E3 /* Stores */,
@@ -155,6 +250,7 @@
 		EEC16C9E619B957A56177B83 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				43ED1C16A7750D0EE1F7277A /* DesktopCompanionController.swift */,
 				A273FDF288DDD755E9D97E33 /* PerchApp.swift */,
 			);
 			path = App;
@@ -168,10 +264,12 @@
 			buildConfigurationList = 4E7BAC100ADA994FCF785195 /* Build configuration list for PBXNativeTarget "Perch" */;
 			buildPhases = (
 				D1A1C77C580B3DEA6A464FB2 /* Sources */,
+				D96D4A17F3A4BA933E57C042 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				3B4030BF27D6E806ABDF28B7 /* PBXTargetDependency */,
 			);
 			name = Perch;
 			packageProductDependencies = (
@@ -198,6 +296,23 @@
 			productReference = B9C11CB6F201B9372EA0827B /* PerchTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		AC0F097AA6A5A8BEFAE68C3D /* PerchWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A922EF2B9A7C3EA8CC6E6853 /* Build configuration list for PBXNativeTarget "PerchWidget" */;
+			buildPhases = (
+				EB53A70E589E20EC37509E8D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PerchWidget;
+			packageProductDependencies = (
+			);
+			productName = PerchWidget;
+			productReference = 0B2FB0F4976F550C4DDA227C /* PerchWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -212,6 +327,10 @@
 						ProvisioningStyle = Automatic;
 					};
 					687C8F85AD19D926995FCD41 = {
+						DevelopmentTeam = R8HXTBY3NM;
+						ProvisioningStyle = Automatic;
+					};
+					AC0F097AA6A5A8BEFAE68C3D = {
 						DevelopmentTeam = R8HXTBY3NM;
 						ProvisioningStyle = Automatic;
 					};
@@ -233,6 +352,7 @@
 			targets = (
 				45DC64F4606392864F14C513 /* Perch */,
 				687C8F85AD19D926995FCD41 /* PerchTests */,
+				AC0F097AA6A5A8BEFAE68C3D /* PerchWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -242,10 +362,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F10000000000000000000005 /* AttentionReducerTests.swift in Sources */,
+				4EC725BDF33DD18AD91D4B54 /* AttentionPresentationTests.swift in Sources */,
+				2D71BA70FF8D909A075CA05D /* AttentionReducerTests.swift in Sources */,
 				E0ED4F8D81196A1375453D04 /* ClaudeDesktopAdapterTests.swift in Sources */,
 				7BE4033407669B521F0001CE /* CodexAdapterTests.swift in Sources */,
 				C0CDC3279BA818FEDA8948F7 /* RosterCoordinatorTests.swift in Sources */,
+				8146F07B7908C5BD9EFDC32B /* WidgetSnapshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -255,17 +377,36 @@
 			files = (
 				9AB197F9AB16150FEF14B74B /* AgentProviderAdapter.swift in Sources */,
 				C0DA1226920E2CBFEFEC0D23 /* AgentSession.swift in Sources */,
-				F10000000000000000000001 /* ObservationEvidence.swift in Sources */,
+				EFFF14F69D3714066D6F9050 /* AttentionOverviewView.swift in Sources */,
+				FBCF8ED92DF21CAD67ED0432 /* AttentionPresentation.swift in Sources */,
+				57F820762FE5C028F82A9CD8 /* AttentionReducer.swift in Sources */,
 				68E17614026C89626D6538C5 /* BoundedProcess.swift in Sources */,
 				64AFF88F81DE68864463B41F /* ClaudeDesktopAdapter.swift in Sources */,
 				1C1AC0A07F7CE0458A1930A1 /* CodexAdapter.swift in Sources */,
+				726A411E3BD2D657EF6624E6 /* DesktopCompanionController.swift in Sources */,
+				036A71892A281511E9EFBD54 /* DesktopPerchView.swift in Sources */,
+				1CD90C20154E468EC4F2D3B2 /* ObservationEvidence.swift in Sources */,
 				19011216E650F7E6E16BFC6B /* PerchApp.swift in Sources */,
+				77F046757011ADB510A61D8A /* PerchDesign.swift in Sources */,
 				A762C0742CEA185E82762658 /* PerchPanelView.swift in Sources */,
 				427403EBF94C639595BA755E /* PerchStatusLabel.swift in Sources */,
-				F10000000000000000000003 /* AttentionReducer.swift in Sources */,
+				D2B32198D67E44BC7FF236FA /* PerchWidgetSnapshot.swift in Sources */,
 				C21B5949B5ADCB67420FAF48 /* RosterCoordinator.swift in Sources */,
 				B5659C912B6F18BA200F4457 /* ScriptedMockAdapter.swift in Sources */,
 				0E19D9838A7E37E51DA441A5 /* SessionRowView.swift in Sources */,
+				ED635508A57B3A9BCF2C596A /* WaitingHandoffRowView.swift in Sources */,
+				609662EC4EC745577B24AE1D /* WidgetSnapshotPublisher.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EB53A70E589E20EC37509E8D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2162088DE4E4A95114B72FF8 /* PerchWidget.swift in Sources */,
+				67FD5F260D396E2F9F4EC382 /* PerchWidgetProvider.swift in Sources */,
+				B2B254C0CD3FAE59802989D7 /* PerchWidgetSnapshot.swift in Sources */,
+				6E55B519EEC201BBA2855960 /* PerchWidgetView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -276,6 +417,11 @@
 			isa = PBXTargetDependency;
 			target = 45DC64F4606392864F14C513 /* Perch */;
 			targetProxy = DFEF99439DA40CD98D7388B4 /* PBXContainerItemProxy */;
+		};
+		3B4030BF27D6E806ABDF28B7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AC0F097AA6A5A8BEFAE68C3D /* PerchWidget */;
+			targetProxy = F813C6D0DAFBC1A7D8F350A7 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -343,6 +489,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/Perch/Perch.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = Sources/Perch/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -421,6 +568,25 @@
 			};
 			name = Debug;
 		};
+		B968E739A72A7B039EC86336 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = Sources/PerchWidget/PerchWidget.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Sources/PerchWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.tcballard.perch.widget;
+				PRODUCT_NAME = PerchWidget;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
 		D1903F6D554C0A35CF0EE279 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -457,6 +623,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/Perch/Perch.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = Sources/Perch/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -469,6 +636,25 @@
 			};
 			name = Release;
 		};
+		E0CFFB839AFC2966AEFE0A20 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = Sources/PerchWidget/PerchWidget.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Sources/PerchWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.tcballard.perch.widget;
+				PRODUCT_NAME = PerchWidget;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -477,6 +663,15 @@
 			buildConfigurations = (
 				204E4DAFE4A978BD53C4066A /* Debug */,
 				DD1BC7C1BF042D41AC16AD92 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A922EF2B9A7C3EA8CC6E6853 /* Build configuration list for PBXNativeTarget "PerchWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B968E739A72A7B039EC86336 /* Debug */,
+				E0CFFB839AFC2966AEFE0A20 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
