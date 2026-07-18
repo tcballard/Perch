@@ -211,7 +211,7 @@ struct AttentionReducer {
         let healthy = contributions.filter { !$0.0.isFailed }
         let assessments = healthy.map { contribution in
             let source = contribution.0
-            Self.assess(
+            return Self.assess(
                 source.evidence.values.filter { $0.session == key },
                 at: now
             )

@@ -29,7 +29,7 @@ final class RosterCoordinatorTests: XCTestCase {
     func testWaitingSessionsSortBeforeWorkingSessions() async {
         let adapter = FixedAdapter(source: .mockScripted, fixtures: [
             Fixture(id: "working", label: "A", state: .working),
-            Fixture(id: "waiting", label: "Z", state: .waiting(.input)),
+            Fixture(id: "waiting", label: "Z", state: .waiting(.choice)),
         ])
         let roster = RosterCoordinator(adapters: [adapter], pollingInterval: .seconds(60))
 
