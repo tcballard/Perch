@@ -1,10 +1,10 @@
 import Foundation
 
 protocol AgentProviderAdapter: Sendable {
-    var id: ProviderID { get }
-    var isEnabled: Bool { get }
+    nonisolated var source: ObservationSourceDescriptor { get }
+    nonisolated var isEnabled: Bool { get }
 
-    func listSessions() async throws -> [AgentSession]
+    func observations(observedAt: Date) async throws -> EvidenceBatch
     func focus(_ session: AgentSession) async throws
 }
 

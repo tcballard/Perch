@@ -21,6 +21,9 @@
 		C0DA1226920E2CBFEFEC0D23 /* AgentSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5931626E26B779B984EA15AE /* AgentSession.swift */; };
 		C21B5949B5ADCB67420FAF48 /* RosterCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55034E591AAB132D3A33C1CD /* RosterCoordinator.swift */; };
 		E0ED4F8D81196A1375453D04 /* ClaudeDesktopAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FC75E8850B9B07D5B7F92FD /* ClaudeDesktopAdapterTests.swift */; };
+		F10000000000000000000001 /* ObservationEvidence.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* ObservationEvidence.swift */; };
+		F10000000000000000000003 /* AttentionReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000004 /* AttentionReducer.swift */; };
+		F10000000000000000000005 /* AttentionReducerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000006 /* AttentionReducerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +54,9 @@
 		E4646DF01B4BCB80CF3377F0 /* CodexAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexAdapter.swift; sourceTree = "<group>"; };
 		E9A2B159B6E1708271A0BF88 /* AgentProviderAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentProviderAdapter.swift; sourceTree = "<group>"; };
 		ECF8D65C1AC704CA6BA1CAB4 /* PerchStatusLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerchStatusLabel.swift; sourceTree = "<group>"; };
+		F10000000000000000000002 /* ObservationEvidence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservationEvidence.swift; sourceTree = "<group>"; };
+		F10000000000000000000004 /* AttentionReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionReducer.swift; sourceTree = "<group>"; };
+		F10000000000000000000006 /* AttentionReducerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionReducerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -58,6 +64,7 @@
 			isa = PBXGroup;
 			children = (
 				5931626E26B779B984EA15AE /* AgentSession.swift */,
+				F10000000000000000000002 /* ObservationEvidence.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -84,6 +91,7 @@
 		94C026A23A9E4C197A1AF5E3 /* Stores */ = {
 			isa = PBXGroup;
 			children = (
+				F10000000000000000000004 /* AttentionReducer.swift */,
 				55034E591AAB132D3A33C1CD /* RosterCoordinator.swift */,
 			);
 			path = Stores;
@@ -101,12 +109,13 @@
 		DEEF9E100A7290E48476D7A0 /* PerchTests */ = {
 			isa = PBXGroup;
 			children = (
+				F10000000000000000000006 /* AttentionReducerTests.swift */,
 				5FC75E8850B9B07D5B7F92FD /* ClaudeDesktopAdapterTests.swift */,
 				9127A6A62C9DCF5147F97155 /* CodexAdapterTests.swift */,
 				BD4FCA977EBEC9EB018088A2 /* RosterCoordinatorTests.swift */,
 			);
 			name = PerchTests;
-			path = Tests/PerchTests;
+			path = tests/PerchTests;
 			sourceTree = "<group>";
 		};
 		E0ABF2C6A7F7ACD7B9B3B7EB /* Adapters */ = {
@@ -233,6 +242,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F10000000000000000000005 /* AttentionReducerTests.swift in Sources */,
 				E0ED4F8D81196A1375453D04 /* ClaudeDesktopAdapterTests.swift in Sources */,
 				7BE4033407669B521F0001CE /* CodexAdapterTests.swift in Sources */,
 				C0CDC3279BA818FEDA8948F7 /* RosterCoordinatorTests.swift in Sources */,
@@ -245,12 +255,14 @@
 			files = (
 				9AB197F9AB16150FEF14B74B /* AgentProviderAdapter.swift in Sources */,
 				C0DA1226920E2CBFEFEC0D23 /* AgentSession.swift in Sources */,
+				F10000000000000000000001 /* ObservationEvidence.swift in Sources */,
 				68E17614026C89626D6538C5 /* BoundedProcess.swift in Sources */,
 				64AFF88F81DE68864463B41F /* ClaudeDesktopAdapter.swift in Sources */,
 				1C1AC0A07F7CE0458A1930A1 /* CodexAdapter.swift in Sources */,
 				19011216E650F7E6E16BFC6B /* PerchApp.swift in Sources */,
 				A762C0742CEA185E82762658 /* PerchPanelView.swift in Sources */,
 				427403EBF94C639595BA755E /* PerchStatusLabel.swift in Sources */,
+				F10000000000000000000003 /* AttentionReducer.swift in Sources */,
 				C21B5949B5ADCB67420FAF48 /* RosterCoordinator.swift in Sources */,
 				B5659C912B6F18BA200F4457 /* ScriptedMockAdapter.swift in Sources */,
 				0E19D9838A7E37E51DA441A5 /* SessionRowView.swift in Sources */,

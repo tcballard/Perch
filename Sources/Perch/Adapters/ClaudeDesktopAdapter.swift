@@ -1,22 +1,23 @@
 import Foundation
 
 actor ClaudeDesktopAdapter: AgentProviderAdapter {
-    nonisolated let id = ProviderID.claude
+    nonisolated let source = ObservationSourceDescriptor.claudeDesktopLocalState
     nonisolated let isEnabled: Bool
 
     private let home: URL
     private let validatedVersion = "2.1.205"
     private var cachedRegistrations: (directory: URL, signature: String, value: [Registration])?
     private var cachedTranscripts: [URL: (signature: String, value: ParsedTranscript)] = [:]
-    private var cachedPermissions: (signature: String, value: Set<String>)?
+    private var cachedPermissions: (signature: String, value: [String: PermissionRecord])?
+    private var sequence: UInt64 = 0
 
     init(isEnabled: Bool = true, home: URL = FileManager.default.homeDirectoryForCurrentUser) {
         self.isEnabled = isEnabled
         self.home = home
     }
 
-    func listSessions() async throws -> [AgentSession] {
-        let cutoff = Date().addingTimeInterval(-3600)
+    func observations(observedAt: Date) async throws -> EvidenceBatch {
+        let cutoff = observedAt.addingTimeInterval(-3600)
         let currentRegistrations = registrations().compactMap { registration -> (Registration, Date)? in
             let transcript = transcriptURL(for: registration)
             guard let attributes = try? FileManager.default.attributesOfItem(atPath: transcript.path),
@@ -25,36 +26,68 @@ actor ClaudeDesktopAdapter: AgentProviderAdapter {
             return (registration, modified)
         }.sorted { $0.1 > $1.1 }.prefix(20).map(\.0)
         let permissionSessions = outstandingPermissionSessions()
+        sequence += 1
 
-        return currentRegistrations.compactMap { registration in
-                let transcript = self.transcriptURL(for: registration)
-                guard FileManager.default.fileExists(atPath: transcript.path) else { return nil }
-                let parsed = self.transcript(at: transcript)
-                let versionMatches = parsed.version == validatedVersion
-                let state: AgentState
-                let waitingOn: String?
-                if !versionMatches {
-                    state = .unknown
-                    waitingOn = nil
-                } else if permissionSessions.contains(registration.localID) {
-                    state = .waiting
-                    waitingOn = "permission required"
-                } else {
-                    state = parsed.state
-                    waitingOn = parsed.waitingOn
+        let snapshots = currentRegistrations.compactMap { registration -> ObservedSessionSnapshot? in
+            let transcript = self.transcriptURL(for: registration)
+            guard FileManager.default.fileExists(atPath: transcript.path) else { return nil }
+            let parsed = self.transcript(at: transcript)
+            let versionMatches = parsed.version == validatedVersion
+            let key = SessionKey(
+                provider: source.provider,
+                runtime: source.runtime,
+                value: registration.localID
+            )
+            let claim: LegacySnapshotLifecycleClaim
+            let permissions = permissionSessions[registration.localID] ?? []
+            if !versionMatches {
+                claim = .presenceOnly
+            } else if parsed.isAmbiguous ||
+                        permissions.count > 1 ||
+                        (!permissions.isEmpty && parsed.state == .waiting) {
+                claim = .presenceOnly
+            } else if let permission = permissions.first,
+                      let openedAt = permission.openedAt {
+                claim = .handoffOpened(
+                    token: HandoffToken(rawValue: "permission:\(permission.requestID)"),
+                    reason: .permission,
+                    at: openedAt
+                )
+            } else if !permissions.isEmpty {
+                claim = .presenceOnly
+            } else {
+                let transitionAt = parsed.transitionAt ?? observedAt
+                switch (parsed.state, parsed.attentionReason, parsed.handoffToken) {
+                case let (.waiting, reason?, token?) where parsed.transitionAt != nil:
+                    claim = .handoffOpened(token: token, reason: reason, at: transitionAt)
+                case (.working, _, _) where parsed.transitionAt != nil:
+                    claim = .workBegan(at: transitionAt)
+                case (.idle, _, _) where parsed.transitionAt != nil:
+                    claim = .workEnded(at: transitionAt)
+                case (.done, _, _) where parsed.transitionAt != nil:
+                    claim = .sessionEnded(at: transitionAt)
+                default:
+                    claim = .presenceOnly
                 }
-                return AgentSession(
-                    provider: self.id,
-                    id: registration.localID,
+            }
+            return ObservedSessionSnapshot(
+                session: ObservedSession(
+                    key: key,
                     label: registration.cwd.lastPathComponent,
                     workingDirectory: registration.cwd,
-                    state: state,
-                    waitingOn: waitingOn,
                     lastActivity: parsed.lastActivity,
-                    confidence: versionMatches ? .observed : .unknown,
                     validatedProviderVersion: versionMatches ? parsed.version : nil
-                )
-            }
+                ),
+                claim: claim,
+                expiresAt: observedAt.addingTimeInterval(5)
+            )
+        }
+        return EvidenceBatch.legacySnapshot(
+            source: source,
+            sequence: sequence,
+            observedAt: observedAt,
+            sessions: snapshots
+        )
     }
 
     func focus(_ session: AgentSession) async throws {
@@ -96,31 +129,56 @@ actor ClaudeDesktopAdapter: AgentProviderAdapter {
         return home.appending(path: ".claude/projects/\(projectDirectory)/\(registration.cliID).jsonl")
     }
 
-    private func outstandingPermissionSessions() -> Set<String> {
+    private func outstandingPermissionSessions() -> [String: [PermissionHandoff]] {
         let url = home.appending(path: "Library/Logs/Claude/main.log")
         let signature = Self.fileSignature(at: url)
+        let outstanding: [String: PermissionRecord]
         if let cachedPermissions, cachedPermissions.signature == signature {
-            return cachedPermissions.value
-        }
-        guard let handle = try? FileHandle(forReadingFrom: url) else { return [] }
-        defer { try? handle.close() }
-        let size = (try? handle.seekToEnd()) ?? 0
-        try? handle.seek(toOffset: size > 256_000 ? size - 256_000 : 0)
-        guard let data = try? handle.readToEnd() else { return [] }
-        let text = String(decoding: data, as: UTF8.self)
-        var outstanding: [String: String] = [:]
-        for line in text.split(separator: "\n") {
-            let value = String(line)
-            if let match = value.wholeMatch(of: /.*Emitted tool permission request ([0-9a-f-]+) for ([A-Za-z0-9_-]+) in session (local_[0-9a-f-]+).*/), match.2 != "AskUserQuestion" {
-                outstanding[String(match.1)] = String(match.3)
+            outstanding = cachedPermissions.value
+        } else {
+            guard let handle = try? FileHandle(forReadingFrom: url) else { return [:] }
+            defer { try? handle.close() }
+            let size = (try? handle.seekToEnd()) ?? 0
+            try? handle.seek(toOffset: size > 256_000 ? size - 256_000 : 0)
+            guard let data = try? handle.readToEnd() else { return [:] }
+            let text = String(decoding: data, as: UTF8.self)
+            var parsed: [String: PermissionRecord] = [:]
+            for line in text.split(separator: "\n") {
+                let value = String(line)
+                if let match = value.wholeMatch(of: /.*Emitted tool permission request ([0-9a-f-]+) for ([A-Za-z0-9_-]+) in session (local_[0-9a-f-]+).*/), match.2 != "AskUserQuestion" {
+                    parsed[String(match.1)] = PermissionRecord(
+                        sessionID: String(match.3),
+                        openedAt: Self.logTimestamp(in: value)
+                    )
+                }
+                if let match = value.wholeMatch(of: /.*Received permission response for ([0-9a-f-]+):.*/) {
+                    parsed.removeValue(forKey: String(match.1))
+                }
             }
-            if let match = value.wholeMatch(of: /.*Received permission response for ([0-9a-f-]+):.*/) {
-                outstanding.removeValue(forKey: String(match.1))
-            }
+            cachedPermissions = (signature, parsed)
+            outstanding = parsed
         }
-        let value = Set(outstanding.values)
-        cachedPermissions = (signature, value)
-        return value
+
+        var sessions: [String: [PermissionHandoff]] = [:]
+        for requestID in outstanding.keys.sorted() {
+            guard let record = outstanding[requestID] else { continue }
+            sessions[record.sessionID, default: []].append(
+                PermissionHandoff(requestID: requestID, openedAt: record.openedAt)
+            )
+        }
+        return sessions
+    }
+
+    private static func logTimestamp(in line: String) -> Date? {
+        let pattern = #"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})"#
+        guard let range = line.range(of: pattern, options: .regularExpression) else { return nil }
+        return parseTimestamp(String(line[range]))
+    }
+
+    private static func parseTimestamp(_ value: String) -> Date? {
+        let fractional = ISO8601DateFormatter()
+        fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return fractional.date(from: value) ?? ISO8601DateFormatter().date(from: value)
     }
 
     private func transcript(at url: URL) -> ParsedTranscript {
@@ -145,53 +203,149 @@ actor ClaudeDesktopAdapter: AgentProviderAdapter {
         try? handle.seek(toOffset: size > 128_000 ? size - 128_000 : 0)
         guard let data = try? handle.readToEnd() else { return .unknown }
         var state = AgentState.unknown
-        var questions = Set<String>()
+        var questions: [String: PendingQuestion] = [:]
+        var ordinaryTools = Set<String>()
         var version: String?
         var lastActivity: Date?
+        var lastTransitionAt: Date?
+        var invalid = false
 
-        let dateFormatter = ISO8601DateFormatter()
         for line in data.split(separator: 0x0A) {
             guard let envelope = try? JSONSerialization.jsonObject(with: Data(line)) as? [String: Any] else { continue }
             if let candidate = envelope["version"] as? String { version = candidate }
-            if let timestamp = envelope["timestamp"] as? String { lastActivity = dateFormatter.date(from: timestamp) }
+            let eventAt = (envelope["timestamp"] as? String).flatMap { timestamp in
+                Self.parseTimestamp(timestamp)
+            }
+            if let eventAt { lastActivity = eventAt }
             guard let message = envelope["message"] as? [String: Any] else { continue }
             let entryType = envelope["type"] as? String
             let content = message["content"]
             if entryType == "user", content is String {
                 state = .working
+                lastTransitionAt = eventAt ?? lastTransitionAt
             } else if entryType == "user", let items = content as? [[String: Any]] {
                 for item in items {
                     if item["type"] as? String == "text", item["text"] as? String == "[Request interrupted by user]" {
-                        questions.removeAll(); state = .idle
+                        questions.removeAll()
+                        ordinaryTools.removeAll()
+                        state = .idle
+                        lastTransitionAt = eventAt ?? lastTransitionAt
+                        invalid = false
                     } else if item["type"] as? String == "tool_result" {
-                        if let toolID = item["tool_use_id"] as? String { questions.remove(toolID) }
+                        guard let toolID = item["tool_use_id"] as? String else {
+                            invalid = true
+                            continue
+                        }
+                        if questions.removeValue(forKey: toolID) == nil,
+                           ordinaryTools.remove(toolID) == nil {
+                            invalid = true
+                        }
                         state = .working
+                        lastTransitionAt = eventAt ?? lastTransitionAt
                     }
                 }
             } else if entryType == "assistant", let items = content as? [[String: Any]] {
                 var sawText = false
+                var sawToolUse = false
                 for item in items {
                     if item["type"] as? String == "text" { sawText = true }
                     if item["type"] as? String == "tool_use" {
+                        sawToolUse = true
                         state = .working
-                        if item["name"] as? String == "AskUserQuestion", let toolID = item["id"] as? String { questions.insert(toolID) }
+                        lastTransitionAt = eventAt ?? lastTransitionAt
+                        guard let toolID = item["id"] as? String else {
+                            invalid = true
+                            continue
+                        }
+                        if questions[toolID] != nil || ordinaryTools.contains(toolID) {
+                            invalid = true
+                        } else if item["name"] as? String == "AskUserQuestion" {
+                            questions[toolID] = PendingQuestion(at: eventAt)
+                        } else {
+                            ordinaryTools.insert(toolID)
+                        }
                     }
                 }
-                if sawText && questions.isEmpty { state = .idle }
+                if sawText && !sawToolUse && questions.isEmpty && ordinaryTools.isEmpty {
+                    state = .idle
+                    lastTransitionAt = eventAt ?? lastTransitionAt
+                    invalid = false
+                }
             }
         }
-        if !questions.isEmpty { state = .waiting }
-        return ParsedTranscript(state: state, waitingOn: state == .waiting ? "input required" : nil, version: version, lastActivity: lastActivity)
+        if invalid || questions.count > 1 {
+            return .unknown(version: version, lastActivity: lastActivity, isAmbiguous: true)
+        }
+        if let id = questions.keys.first,
+           let question = questions[id] {
+            guard let openedAt = question.at else {
+                return .unknown(version: version, lastActivity: lastActivity, isAmbiguous: true)
+            }
+            return ParsedTranscript(
+                state: .waiting,
+                attentionReason: .input,
+                handoffToken: HandoffToken(rawValue: "question:\(id)"),
+                transitionAt: openedAt,
+                version: version,
+                lastActivity: lastActivity,
+                isAmbiguous: false
+            )
+        }
+        guard state != .unknown, let lastTransitionAt else {
+            return .unknown(version: version, lastActivity: lastActivity)
+        }
+        return ParsedTranscript(
+            state: state,
+            attentionReason: nil,
+            handoffToken: nil,
+            transitionAt: lastTransitionAt,
+            version: version,
+            lastActivity: lastActivity,
+            isAmbiguous: false
+        )
     }
 }
 
 extension ClaudeDesktopAdapter {
     struct ParsedTranscript {
         let state: AgentState
-        let waitingOn: String?
+        let attentionReason: AttentionReason?
+        let handoffToken: HandoffToken?
+        let transitionAt: Date?
         let version: String?
         let lastActivity: Date?
-        static let unknown = ParsedTranscript(state: .unknown, waitingOn: nil, version: nil, lastActivity: nil)
+        let isAmbiguous: Bool
+
+        var waitingOn: String? { attentionReason?.displayText }
+
+        static let unknown = ParsedTranscript(
+            state: .unknown,
+            attentionReason: nil,
+            handoffToken: nil,
+            transitionAt: nil,
+            version: nil,
+            lastActivity: nil,
+            isAmbiguous: false
+        )
+
+        static func unknown(
+            version: String?,
+            lastActivity: Date?,
+            isAmbiguous: Bool = false
+        ) -> ParsedTranscript {
+            ParsedTranscript(
+                state: .unknown,
+                attentionReason: nil,
+                handoffToken: nil,
+                transitionAt: nil,
+                version: version,
+                lastActivity: lastActivity,
+                isAmbiguous: isAmbiguous
+            )
+        }
     }
+    private struct PendingQuestion { let at: Date? }
+    private struct PermissionRecord { let sessionID: String; let openedAt: Date? }
+    private struct PermissionHandoff { let requestID: String; let openedAt: Date? }
     private struct Registration { let localID: String; let cliID: String; let cwd: URL }
 }

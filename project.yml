@@ -32,7 +32,7 @@ targets:
     type: bundle.unit-test
     platform: macOS
     sources:
-      - Tests/PerchTests
+      - tests/PerchTests
     dependencies:
       - target: Perch
     settings:
