@@ -3,6 +3,11 @@
 Date inspected: 2026-07-14
 Purpose: interaction and architecture research for Perch v0.0.2 planning
 
+> Update (2026-07-18): [ADR 0001](../adr/0001-observation-boundaries.md)
+> supersedes this note's blanket rejection of provider hooks. Perch may support
+> explicit, reversible, observation-only hooks through a one-way local relay;
+> bidirectional approval/answer bridges and session mutation remain prohibited.
+
 ## Sources inspected
 
 - [Vibe Island](https://vibeisland.app/), including its public product preview.

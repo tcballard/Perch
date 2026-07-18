@@ -12,6 +12,8 @@ panel is a diagnostic vertical slice; the product path toward the first signed
 `v0.1.0` release is documented in [ROADMAP.md](ROADMAP.md). The waiting-first
 v0.0.2 design recommendation is in
 [docs/design/v0.0.2-attention-layer.md](docs/design/v0.0.2-attention-layer.md).
+The provider-scaling identity, evidence, and reducer boundaries are recorded in
+[ADR 0001](docs/adr/0001-observation-boundaries.md).
 
 ## Current support
 
@@ -40,9 +42,9 @@ state, retains the session as `unknown`/`stale` for 15 seconds, then removes it.
 ## Privacy and permissions
 
 Observation is local and read-only. Perch does not persist session content,
-log raw prompts, or use network services. Debug timing logs contain provider
-names, durations, counts, and transition latency only. The app is currently an
-unsandboxed developer utility so it can read the providers' local metadata.
+log raw prompts, or use network services. Debug timing logs contain source
+identifiers, durations, counts, and transition latency only. The app is currently
+an unsandboxed developer utility so it can read the providers' local metadata.
 
 Focusing a Codex task asks macOS to open a validated provider URL. Opening the
 Perch panel never changes an agent session and Perch never focuses anything
