@@ -3,6 +3,8 @@
 DerivedData/
 DerivedData*/
 build/
+dist/
+.release/
 *.xcuserstate
 xcuserdata/
 __pycache__/

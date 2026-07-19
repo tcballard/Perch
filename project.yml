@@ -7,8 +7,10 @@ settings:
   base:
     ARCHS: arm64
     CODE_SIGN_STYLE: Automatic
+    CURRENT_PROJECT_VERSION: "7"
     DEVELOPMENT_TEAM: R8HXTBY3NM
     MACOSX_DEPLOYMENT_TARGET: "14.0"
+    MARKETING_VERSION: "0.1.0"
     SWIFT_VERSION: "5.0"
 targets:
   Perch:
@@ -24,8 +26,8 @@ targets:
       path: Sources/Perch/Info.plist
       properties:
         CFBundleDisplayName: Perch
-        CFBundleShortVersionString: "0.0.2"
-        CFBundleVersion: "6"
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSApplicationCategoryType: public.app-category.developer-tools
         LSMinimumSystemVersion: "14.0"
         LSUIElement: true
@@ -35,6 +37,10 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Sources/Perch/Perch.entitlements
         PRODUCT_BUNDLE_IDENTIFIER: com.tcballard.perch
         PRODUCT_NAME: Perch
+      configs:
+        Release:
+          CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
+          ENABLE_HARDENED_RUNTIME: YES
   PerchWidget:
     type: app-extension
     platform: macOS
@@ -45,8 +51,8 @@ targets:
       path: Sources/PerchWidget/Info.plist
       properties:
         CFBundleDisplayName: Perch
-        CFBundleShortVersionString: "0.0.2"
-        CFBundleVersion: "6"
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
@@ -56,6 +62,10 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.tcballard.perch.widget
         PRODUCT_NAME: PerchWidget
         SKIP_INSTALL: true
+      configs:
+        Release:
+          CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
+          ENABLE_HARDENED_RUNTIME: YES
   PerchTests:
     type: bundle.unit-test
     platform: macOS

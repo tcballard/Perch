@@ -8,7 +8,7 @@ does not create tasks, answer prompts, grant approvals, control agents, or send
 provider data over the network.
 
 PR #1 delivered the internal `v0.0.1` observation-engine foundation. The
-`v0.0.2` panel adds a waiting-first attention layer: a compact ambient summary,
+`v0.1.0` release candidate adds a waiting-first attention layer: a compact ambient summary,
 an actionable human-handoff queue, and secondary access to all observed
 activity. The product path toward the first signed `v0.1.0` release is
 documented in [ROADMAP.md](ROADMAP.md). The design decision is recorded in
@@ -79,3 +79,21 @@ python3 -m unittest discover -s tests -v
 
 The evidence, reproduction steps, provider limitations, and gate decision are
 recorded in [SPIKE-findings.md](SPIKE-findings.md).
+
+## Direct-download release
+
+Perch is prepared for direct distribution as a Developer ID-signed,
+Apple-notarized ZIP. Release builds use Hardened Runtime and preserve the
+minimum host/widget entitlements required for their shared App Group.
+
+The release script deliberately does not create tags, GitHub releases, or
+Homebrew updates:
+
+```sh
+./script/release.sh --version 0.1.0 --build 7 --prepare-only
+```
+
+After the one-time notarization credential setup and all owner gates pass,
+remove `--prepare-only` to submit to Apple and produce the final ZIP and
+checksum. See [the release checklist](docs/release-checklist.md) for the exact
+Apple portal, validation, notarization, and publication sequence.
