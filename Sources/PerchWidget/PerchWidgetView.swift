@@ -30,7 +30,6 @@ struct PerchWidgetView: View {
 
     private func small(_ snapshot: PerchWidgetSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            brandHeader(snapshot.dominantState)
             smallStatusStrip(snapshot)
 
             if let handoff = snapshot.waitingHandoffs.first {
@@ -68,8 +67,14 @@ struct PerchWidgetView: View {
 
     private func medium(_ snapshot: PerchWidgetSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            compactHeader(snapshot)
-            perchRail(snapshot, style: .compact)
+            HStack(spacing: 10) {
+                perchRail(snapshot, style: .compact)
+                Text(headline(snapshot))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(color(snapshot.dominantState))
+                    .monospacedDigit()
+                    .fixedSize()
+            }
 
             if snapshot.waitingHandoffs.isEmpty {
                 calmState(snapshot, compact: true)
@@ -91,11 +96,6 @@ struct PerchWidgetView: View {
 
     private func large(_ snapshot: PerchWidgetSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                brandHeader(snapshot.dominantState)
-                Spacer()
-                freshness(snapshot.generatedAt)
-            }
             perchRail(snapshot, style: .labelled)
 
             HStack(alignment: .firstTextBaseline) {
@@ -135,15 +135,13 @@ struct PerchWidgetView: View {
     private func extraLarge(_ snapshot: PerchWidgetSnapshot) -> some View {
         VStack(spacing: 8) {
             HStack(spacing: 14) {
-                brandHeader(snapshot.dominantState)
-                Spacer()
+                perchRail(snapshot, style: .wide)
                 Text(headline(snapshot))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(color(snapshot.dominantState))
+                    .fixedSize()
                 freshness(snapshot.generatedAt)
             }
-
-            perchRail(snapshot, style: .wide)
 
             HStack(alignment: .top, spacing: 14) {
                 VStack(alignment: .leading, spacing: 3) {
@@ -438,27 +436,6 @@ struct PerchWidgetView: View {
         }
         .padding(.top, compact ? 1 : 5)
         .accessibilityElement(children: .combine)
-    }
-
-    private func compactHeader(_ snapshot: PerchWidgetSnapshot) -> some View {
-        HStack(spacing: 7) {
-            stateGlyph(snapshot.dominantState, size: 17)
-            Text("Perch")
-                .font(.headline)
-            Spacer()
-            Text(headline(snapshot))
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(color(snapshot.dominantState))
-                .monospacedDigit()
-        }
-    }
-
-    private func brandHeader(_ state: PerchWidgetSnapshot.State) -> some View {
-        HStack(spacing: 7) {
-            stateGlyph(state, size: 17)
-            Text("Perch")
-                .font(.headline)
-        }
     }
 
     private func stateEyebrow(_ state: PerchWidgetSnapshot.State, text: String) -> some View {
