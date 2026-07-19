@@ -10,7 +10,7 @@ WIDGET_BUNDLE_ID="com.tcballard.perch.widget"
 SIGN_IDENTITY="Developer ID Application: Thomas Ballard ($TEAM_ID)"
 EXPORT_OPTIONS="$ROOT_DIR/script/ExportOptions-DeveloperID.plist"
 VERSION="0.1.0"
-BUILD_NUMBER="7"
+BUILD_NUMBER="8"
 NOTARY_PROFILE="PerchNotary"
 PREPARE_ONLY=false
 
@@ -20,7 +20,7 @@ usage: ./script/release.sh [options]
 
 Options:
   --version VERSION          Release version (default: 0.1.0)
-  --build NUMBER             Bundle build number (default: 7)
+  --build NUMBER             Bundle build number (default: 8)
   --notary-profile NAME      notarytool Keychain profile (default: PerchNotary)
   --prepare-only             Build and verify the Developer ID artifact without
                              submitting it to Apple or producing a release ZIP
@@ -85,6 +85,7 @@ UPLOAD_ZIP="$WORK_DIR/Perch-$VERSION-notary-upload.zip"
 FINAL_ZIP="$ROOT_DIR/dist/Perch-$VERSION.zip"
 CHECKSUM="$ROOT_DIR/dist/Perch-$VERSION.sha256"
 VERIFY_ROOT="${TMPDIR%/}/PerchReleaseVerify-$VERSION-$BUILD_NUMBER"
+EXPORT_STAGE_DIR="$VERIFY_ROOT/export"
 UPLOAD_VERIFY_DIR="$VERIFY_ROOT/upload"
 FINAL_STAGE_DIR="$VERIFY_ROOT/stage"
 VERIFY_DIR="$VERIFY_ROOT/final"
@@ -113,12 +114,21 @@ xcodebuild \
   -exportOptionsPlist "$EXPORT_OPTIONS" \
   -allowProvisioningUpdates
 
-APP="$EXPORT_DIR/Perch.app"
-WIDGET="$APP/Contents/PlugIns/PerchWidget.appex"
-if [[ ! -d "$APP" || ! -d "$WIDGET" ]]; then
+EXPORTED_APP="$EXPORT_DIR/Perch.app"
+EXPORTED_WIDGET="$EXPORTED_APP/Contents/PlugIns/PerchWidget.appex"
+if [[ ! -d "$EXPORTED_APP" || ! -d "$EXPORTED_WIDGET" ]]; then
   echo "error: exported host app or widget extension is missing" >&2
   exit 1
 fi
+
+# Move the exported bundle out of the File Provider-backed repository before
+# touching or validating it. File Provider can race with xattr cleanup and
+# reattach Finder metadata between commands in the repository directory.
+rm -rf "$EXPORT_STAGE_DIR"
+mkdir -p "$EXPORT_STAGE_DIR"
+/usr/bin/ditto "$EXPORTED_APP" "$EXPORT_STAGE_DIR/Perch.app"
+APP="$EXPORT_STAGE_DIR/Perch.app"
+WIDGET="$APP/Contents/PlugIns/PerchWidget.appex"
 
 assert_bundle_version() {
   local bundle="$1"
@@ -135,9 +145,8 @@ assert_bundle_version() {
 assert_bundle_version "$APP"
 assert_bundle_version "$WIDGET"
 
-# Cloud-backed Documents folders can attach Finder/File Provider metadata to
-# generated bundles. It is not executable content and strict codesign rejects
-# it, so remove it before validating or packaging the exported app.
+# Finder/File Provider metadata is not executable content and strict codesign
+# rejects it, so remove it from the local staging copy before validation.
 /usr/bin/xattr -cr "$APP"
 
 assert_signature() {
@@ -203,9 +212,7 @@ spctl --assess --type execute --verbose=4 "$APP"
 echo "==> Creating final release ZIP"
 rm -f "$FINAL_ZIP" "$CHECKSUM"
 
-# The repository lives in a File Provider-backed Documents folder, which can
-# reattach Finder metadata after stapling. Stage the accepted app on the local
-# volume, remove only extended attributes there, and prove that its signature
+# Copy the accepted app to a clean local directory and prove that its signature
 # and notarization ticket remain valid before creating the public archive.
 rm -rf "$FINAL_STAGE_DIR"
 mkdir -p "$FINAL_STAGE_DIR"

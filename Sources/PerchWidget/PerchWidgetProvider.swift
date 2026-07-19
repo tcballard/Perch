@@ -57,7 +57,7 @@ private extension PerchWidgetSnapshot {
                     action: "Permission required",
                     waitingSince: .now.addingTimeInterval(-7 * 60),
                     providerName: "Codex",
-                    focusURL: URL(string: "codex://threads/preview")
+                    focusURL: URL(string: "perch://focus/codex/019f5ee8-576e-74b3-9b84-a5b73b3ad1d5")
                 ),
                 WaitingHandoff(
                     projectName: "refactor-auth",
@@ -68,9 +68,9 @@ private extension PerchWidgetSnapshot {
                 )
             ],
             sessions: [
-                SessionSummary(projectName: "checkout-flow", state: .waiting, detail: "Permission required", providerName: "Codex", activityAt: .now.addingTimeInterval(-420), focusURL: URL(string: "codex://threads/preview")),
+                SessionSummary(projectName: "checkout-flow", state: .waiting, detail: "Permission required", providerName: "Codex", activityAt: .now.addingTimeInterval(-420), focusURL: URL(string: "perch://focus/codex/019f5ee8-576e-74b3-9b84-a5b73b3ad1d5")),
                 SessionSummary(projectName: "refactor-auth", state: .waiting, detail: "Input required", providerName: "Claude", activityAt: .now.addingTimeInterval(-180), focusURL: nil),
-                SessionSummary(projectName: "Perch", state: .working, detail: "Working", providerName: "Codex", activityAt: .now, focusURL: URL(string: "codex://threads/perch")),
+                SessionSummary(projectName: "Perch", state: .working, detail: "Working", providerName: "Codex", activityAt: .now, focusURL: URL(string: "perch://focus/codex/019f5ee8-576e-74b3-9b84-a5b73b3ad1d5")),
                 SessionSummary(projectName: "docs", state: .resting, detail: "Resting", providerName: "Claude", activityAt: .now.addingTimeInterval(-900), focusURL: nil),
                 SessionSummary(projectName: "experiment", state: .uncertain, detail: "State uncertain", providerName: "Codex", activityAt: nil, focusURL: nil)
             ]

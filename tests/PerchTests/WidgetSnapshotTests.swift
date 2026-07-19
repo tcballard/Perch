@@ -32,7 +32,7 @@ final class WidgetSnapshotTests: XCTestCase {
             id: "private-thread-id",
             label: "Perch",
             workingDirectory: URL(fileURLWithPath: "/Users/tom/Secret/Perch"),
-            nativeSurface: .url(URL(string: "codex://threads/visible-focus-id")!),
+            nativeSurface: .url(URL(string: "codex://threads/019f5ee8-576e-74b3-9b84-a5b73b3ad1d5")!),
             state: .waiting,
             attentionReason: .permission,
             lastActivity: generatedAt.addingTimeInterval(-10),
@@ -50,8 +50,23 @@ final class WidgetSnapshotTests: XCTestCase {
         XCTAssertEqual(snapshot.sessions.first?.projectName, "Perch")
         XCTAssertEqual(snapshot.sessions.first?.state, .waiting)
         XCTAssertEqual(snapshot.sessions.first?.detail, "Permission required")
+        XCTAssertEqual(
+            snapshot.waitingHandoffs.first?.focusURL,
+            URL(string: "perch://focus/codex/019f5ee8-576e-74b3-9b84-a5b73b3ad1d5")
+        )
         XCTAssertFalse(json.contains("/Users/tom/Secret"))
         XCTAssertFalse(json.contains("private-thread-id"))
+    }
+
+    func testFocusDeepLinkRoundTripsOnlyValidatedCodexTaskIDs() {
+        let nativeURL = URL(string: "codex://threads/019f5ee8-576e-74b3-9b84-a5b73b3ad1d5")!
+        let widgetURL = PerchFocusDeepLink.widgetURL(for: nativeURL)
+
+        XCTAssertEqual(widgetURL, URL(string: "perch://focus/codex/019f5ee8-576e-74b3-9b84-a5b73b3ad1d5"))
+        XCTAssertEqual(widgetURL.flatMap(PerchFocusDeepLink.nativeURL), nativeURL)
+        XCTAssertNil(PerchFocusDeepLink.widgetURL(for: URL(string: "https://example.com")!))
+        XCTAssertNil(PerchFocusDeepLink.nativeURL(from: URL(string: "perch://focus/codex/not-a-uuid")!))
+        XCTAssertNil(PerchFocusDeepLink.nativeURL(from: URL(string: "perch://focus/claude/019f5ee8-576e-74b3-9b84-a5b73b3ad1d5")!))
     }
 
     func testUnknownAndStaleSessionsNeverBecomeWidgetHandoffs() {

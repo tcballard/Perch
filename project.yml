@@ -7,7 +7,7 @@ settings:
   base:
     ARCHS: arm64
     CODE_SIGN_STYLE: Automatic
-    CURRENT_PROJECT_VERSION: "7"
+    CURRENT_PROJECT_VERSION: "8"
     DEVELOPMENT_TEAM: R8HXTBY3NM
     MACOSX_DEPLOYMENT_TARGET: "14.0"
     MARKETING_VERSION: "0.1.0"
@@ -32,6 +32,10 @@ targets:
         LSMinimumSystemVersion: "14.0"
         LSUIElement: true
         NSHumanReadableCopyright: Copyright © 2026 Tom Ballard. All rights reserved.
+        CFBundleURLTypes:
+          - CFBundleURLName: com.tcballard.perch.focus
+            CFBundleURLSchemes:
+              - perch
     settings:
       base:
         CODE_SIGN_ENTITLEMENTS: Sources/Perch/Perch.entitlements

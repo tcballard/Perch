@@ -51,7 +51,7 @@ Use this to validate archive, automatic Developer ID export, Hardened Runtime,
 secure timestamps, nested signatures, and release entitlements:
 
 ```sh
-./script/release.sh --version 0.1.0 --build 7 --prepare-only
+./script/release.sh --version 0.1.0 --build 8 --prepare-only
 ```
 
 The resulting `*-notary-upload.zip` is explicitly not a release artifact.
@@ -61,7 +61,7 @@ The resulting `*-notary-upload.zip` is explicitly not a release artifact.
 ```sh
 ./script/release.sh \
   --version 0.1.0 \
-  --build 7 \
+  --build 8 \
   --notary-profile PerchNotary
 ```
 

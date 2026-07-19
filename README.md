@@ -90,7 +90,7 @@ The release script deliberately does not create tags, GitHub releases, or
 Homebrew updates:
 
 ```sh
-./script/release.sh --version 0.1.0 --build 7 --prepare-only
+./script/release.sh --version 0.1.0 --build 8 --prepare-only
 ```
 
 After the one-time notarization credential setup and all owner gates pass,
