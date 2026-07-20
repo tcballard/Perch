@@ -12,6 +12,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             : defaults.bool(forKey: "desktopCompanionEnabled")
         model.desktopCompanion.setVisible(isEnabled)
     }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard let nativeURL = urls.lazy.compactMap(PerchFocusDeepLink.nativeURL).first else { return }
+        NSWorkspace.shared.open(nativeURL)
+    }
 }
 
 @MainActor

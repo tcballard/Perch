@@ -15,6 +15,7 @@
 		1CD90C20154E468EC4F2D3B2 /* ObservationEvidence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A569C981FB1E1AE3427BBA4 /* ObservationEvidence.swift */; };
 		2162088DE4E4A95114B72FF8 /* PerchWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2002E8D2F24B30C28D4409E7 /* PerchWidget.swift */; };
 		2D71BA70FF8D909A075CA05D /* AttentionReducerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8C0A0364D4F4894AEEE60AF /* AttentionReducerTests.swift */; };
+		397F2C5AEAF866C0CA0BAECE /* PerchFocusDeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24A1D7FCB5F9076E59E49145 /* PerchFocusDeepLink.swift */; };
 		427403EBF94C639595BA755E /* PerchStatusLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF8D65C1AC704CA6BA1CAB4 /* PerchStatusLabel.swift */; };
 		4EC725BDF33DD18AD91D4B54 /* AttentionPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FCDD698C0935192A342B7AD /* AttentionPresentationTests.swift */; };
 		57F820762FE5C028F82A9CD8 /* AttentionReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1C6B1A21C23C2E87AB5903 /* AttentionReducer.swift */; };
@@ -22,6 +23,7 @@
 		64AFF88F81DE68864463B41F /* ClaudeDesktopAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F1612C6039F49C790F19BD0 /* ClaudeDesktopAdapter.swift */; };
 		67FD5F260D396E2F9F4EC382 /* PerchWidgetProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA33156C4C2643FE5388C78 /* PerchWidgetProvider.swift */; };
 		68E17614026C89626D6538C5 /* BoundedProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10BB1FC94FE53B78DA9B0CB /* BoundedProcess.swift */; };
+		6BA505CDF1DA48A3E7830DC5 /* PerchFocusDeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24A1D7FCB5F9076E59E49145 /* PerchFocusDeepLink.swift */; };
 		6E55B519EEC201BBA2855960 /* PerchWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D85C083EC66CABD7E63B29A /* PerchWidgetView.swift */; };
 		726A411E3BD2D657EF6624E6 /* DesktopCompanionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43ED1C16A7750D0EE1F7277A /* DesktopCompanionController.swift */; };
 		77F046757011ADB510A61D8A /* PerchDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA672EFF9361DF61741C313F /* PerchDesign.swift */; };
@@ -78,6 +80,7 @@
 		0B2FB0F4976F550C4DDA227C /* PerchWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PerchWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		10713F66FF5BF6ABA059AD52 /* SessionRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRowView.swift; sourceTree = "<group>"; };
 		2002E8D2F24B30C28D4409E7 /* PerchWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerchWidget.swift; sourceTree = "<group>"; };
+		24A1D7FCB5F9076E59E49145 /* PerchFocusDeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerchFocusDeepLink.swift; sourceTree = "<group>"; };
 		2B50B0AE8376C7EE64806672 /* WidgetSnapshotPublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotPublisher.swift; sourceTree = "<group>"; };
 		2D6ADECB4AFCE77EC7F42048 /* WaitingHandoffRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitingHandoffRowView.swift; sourceTree = "<group>"; };
 		2DE0D2DEBBBDEFBA83260D71 /* PerchWidgetFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerchWidgetFilter.swift; sourceTree = "<group>"; };
@@ -128,6 +131,7 @@
 		4B9430EA749E54FCA6B60A3F /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				24A1D7FCB5F9076E59E49145 /* PerchFocusDeepLink.swift */,
 				34A26C7F36BBF58A990DA321 /* PerchWidgetSnapshot.swift */,
 			);
 			name = Shared;
@@ -391,6 +395,7 @@
 				1CD90C20154E468EC4F2D3B2 /* ObservationEvidence.swift in Sources */,
 				19011216E650F7E6E16BFC6B /* PerchApp.swift in Sources */,
 				77F046757011ADB510A61D8A /* PerchDesign.swift in Sources */,
+				6BA505CDF1DA48A3E7830DC5 /* PerchFocusDeepLink.swift in Sources */,
 				A762C0742CEA185E82762658 /* PerchPanelView.swift in Sources */,
 				427403EBF94C639595BA755E /* PerchStatusLabel.swift in Sources */,
 				D2B32198D67E44BC7FF236FA /* PerchWidgetSnapshot.swift in Sources */,
@@ -406,6 +411,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				397F2C5AEAF866C0CA0BAECE /* PerchFocusDeepLink.swift in Sources */,
 				2162088DE4E4A95114B72FF8 /* PerchWidget.swift in Sources */,
 				8A0F8CD71E0FE42FA9A624CF /* PerchWidgetFilter.swift in Sources */,
 				67FD5F260D396E2F9F4EC382 /* PerchWidgetProvider.swift in Sources */,
@@ -466,6 +472,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 8;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = R8HXTBY3NM;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -479,6 +486,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -542,6 +550,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 8;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = R8HXTBY3NM;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -561,6 +570,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -628,7 +638,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/Perch/Perch.entitlements;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Sources/Perch/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -645,7 +657,9 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Sources/PerchWidget/PerchWidget.entitlements;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Sources/PerchWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

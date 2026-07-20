@@ -70,7 +70,7 @@ final class WidgetSnapshotPublisher {
                 providerName: item.providerName,
                 focusURL: item.session.nativeSurface.flatMap { handle in
                     guard case let .url(url) = handle else { return nil }
-                    return url
+                    return PerchFocusDeepLink.widgetURL(for: url)
                 }
             )
         }
@@ -92,7 +92,7 @@ final class WidgetSnapshotPublisher {
                     activityAt: item.session.waitingSince ?? item.session.lastActivity,
                     focusURL: item.session.nativeSurface.flatMap { handle in
                         guard case let .url(url) = handle else { return nil }
-                        return url
+                        return PerchFocusDeepLink.widgetURL(for: url)
                     }
                 )
             }
